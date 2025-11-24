@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klipapp v3.0 + v4.0 - Sistema Integrado</title>
+    <style>
+        :root {
+            --primary: #2c5530;
+            --secondary: #6f42c1;
+            --danger: #dc3545;
+            --warning: #fd7e14;
+            --success: #20c997;
+            --light: #f8f9fa;
+            --dark: #333;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="date"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        button:hover { 
+            background: #1e3a23; 
+        }
+        
+        button.secondary {
+            background: var(--secondary);
+        }
+        
+        button.secondary:hover {
+            background: #5a359a;
+        }
+        
+        .results { 
+            margin-top: 30px; 
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .emergency-card {
+            border-left-color: var(--danger);
+            background: #fff5f5;
+        }
+        
+        .key-card {
+            border-left-color: var(--success);
+            background: #f0f9ff;
+        }
+        
+        .tikkun-card {
+            border-left-color: var(--secondary);
+            background: #f8f9ff;
+        }
+        
+        .overflow-card {
+            border-left-color: var(--warning);
+            background: #fff4e6;
+        }
+        
+        .tense-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .tense-severe { background: var(--danger); color: white; }
+        .tense-low { background: var(--warning); color: white; }
+        .tense-critical { background: #ffc107; color: black; }
+        .tense-high { background: var(--success); color: white; }
+        
+        .loading { 
+            text-align: center; 
+            padding: 20px; 
+            display: none; 
+        }
+        
+        .sefirot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .sefira-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+            font-size: 0.9em;
+        }
+        
+        .emergency-item {
+            border-left-color: var(--danger);
+            background: #fff5f5;
+        }
+        
+        .overflow-item {
+            border-left-color: var(--warning);
+            background: #fff4e6;
+        }
+        
+        .critical-item {
+            border-left-color: #ffc107;
+            background: #fffdf4;
+        }
+        
+        .tense-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .tense-item {
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+        
+        .tense-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .practice-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .practice-priority {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+        
+        .practice-duration {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+        
+        .klipa-section {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .klipa-overflow {
+            background: #fff4e6;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .klipa-vacuum {
+            background: #fff5f5;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .klipa-critical {
+            background: #f0f9ff;
+            border-left: 4px solid var(--success);
+        }
+        
+        .week-plan {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .day-plan {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .error-message {
+            color: var(--danger);
+            background: #fff5f5;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .explanation-section {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 6px;
+        }
+        
+        .explanation-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .summary-item {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            background: white;
+        }
+        
+        .summary-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .input-section, .nav-tabs { 
+                flex-direction: column; 
+            }
+            
+            input[type="date"] { 
+                min-width: 100%; 
+            }
+            
+            .sefirot-grid, .tense-map, .practice-grid, .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Klipapp v3.0 + v4.0</h1>
+        <div class="subtitle">Mapa de Presiones + Sistema de Tikkun Integrado</div>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="analysis">📊 Análisis Completo</div>
+            <div class="nav-tab" data-tab="tikkun">🔮 Plan de Tikkun</div>
+        </div>
+
+        <!-- PESTAÑA ANÁLISIS COMPLETO -->
+        <div class="tab-content active" id="analysis-tab">
+            <div class="input-section">
+                <input type="date" id="birthDate" value="1972-06-13">
+                <button id="calculateBtn">Calcular Mapa de Presiones</button>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="loading" id="loading">
+                <p>🔄 Analizando tu cartografía energética completa...</p>
+            </div>
+            
+            <div class="results" id="analysis-results">
+                <div class="result-card">
+                    <p>Ingresa tu fecha de nacimiento para ver tu mapa completo de presiones y Klipot.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA PLAN DE TIKKUN -->
+        <div class="tab-content" id="tikkun-tab">
+            <div class="result-card">
+                <h3>🔮 Plan Personalizado de Tikkun</h3>
+                <p>Completa el análisis primero para generar tu plan de transformación.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SISTEMA DE NAVEGACIÓN ==========
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.add('active');
+            });
+        });
+
+        // ========== MOTOR DE CÁLCULO v3.0 ==========
+        function reduceNumber(num) {
+            if (num === 11 || num === 22 || num === 33) return num;
+            
+            let result = num;
+            while (result > 9) {
+                let sum = 0;
+                const str = result.toString();
+                for (let i = 0; i < str.length; i++) {
+                    sum += parseInt(str[i]);
+                }
+                result = sum;
+                if (result === 11 || result === 22 || result === 33) break;
+            }
+            return result;
+        }
+
+        function calculateAllSefirot(d, m, a) {
+            return {
+                "Keter": Math.abs(d - a),
+                "Jojma": Math.abs(d - m),
+                "Bina": Math.abs(m - a),
+                "Daat": Math.abs(Math.abs(d - m) - Math.abs(d - a)),
+                "Jesed": Math.abs(d - Math.abs(m - a)),
+                "Gevura": Math.abs(m - Math.abs(d - a)),
+                "Tiferet": Math.abs(Math.abs(d - m) - Math.abs(m - a)),
+                "Netsaj": Math.abs(Math.abs(d - a) - Math.abs(m - a)),
+                "Hod": Math.abs(Math.abs(d - m) - Math.abs(d - a)),
+                "Yesod": Math.abs(d - Math.abs(Math.abs(d - m) - Math.abs(m - a))),
+                "Malkuth": Math.abs(a - Math.abs(d - m))
+            };
+        }
+
+        function findEmergentSefirot(kliMap) {
+            const entries = Object.entries(kliMap);
+            entries.sort((a, b) => b[1] - a[1]);
+            
+            const shadowCentral = entries[0];
+            const secondary = entries[1];
+            const tertiary = entries[2];
+            
+            const keyValue = Math.abs(shadowCentral[1] - secondary[1]);
+            let missionKey = entries[0];
+            
+            for (let i = 0; i < entries.length; i++) {
+                if (Math.abs(entries[i][1] - keyValue) <= 1) {
+                    missionKey = entries[i];
+                    break;
+                }
+            }
+            
+            return {
+                shadowCentral: { name: shadowCentral[0], value: shadowCentral[1] },
+                secondary: { name: secondary[0], value: secondary[1] },
+                tertiary: { name: tertiary[0], value: tertiary[1] },
+                missionKey: { name: missionKey[0], value: missionKey[1] },
+                allSefirot: entries
+            };
+        }
+
+        function calculateTense(or, kli) {
+            if (kli === 0) {
+                return { value: Infinity, state: "Flujo Puro", badge: "tense-high", type: "overflow" };
+            }
+            const tenseValue = or / kli;
+            if (tenseValue < 0.7) {
+                return { value: tenseValue, state: "Subpresión Severa", badge: "tense-severe", type: "vacuum" };
+            }
+            if (tenseValue < 1) {
+                return { value: tenseValue, state: "Subpresión", badge: "tense-low", type: "vacuum" };
+            }
+            if (tenseValue === 1) {
+                return { value: tenseValue, state: "Punto Crítico", badge: "tense-critical", type: "critical" };
+            }
+            return { value: tenseValue, state: "Sobrepresión", badge: "tense-high", type: "overflow" };
+        }
+
+        function calculateAllTense(or, kliMap) {
+            const tenseMap = {};
+            for (const [sefira, kli] of Object.entries(kliMap)) {
+                tenseMap[sefira] = calculateTense(or, kli);
+            }
+            return tenseMap;
+        }
+
+        function analyzeKlipot(tenseMap) {
+            const klipot = {
+                overflow: [],
+                vacuum: [],
+                critical: []
+            };
+            
+            for (const [sefira, tense] of Object.entries(tenseMap)) {
+                if (tense.type === "overflow") klipot.overflow.push({ sefira: sefira, tense: tense });
+                if (tense.type === "vacuum") klipot.vacuum.push({ sefira: sefira, tense: tense });
+                if (tense.type === "critical") klipot.critical.push({ sefira: sefira, tense: tense });
+            }
+            
+            return klipot;
+        }
+
+        // ========== EXPLICACIONES PROFUNDAS COMPLETAS ==========
+        function getDeepKlipaExplanation(sefira, type) {
+            const explanations = {
+                "Keter": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Keter - La Corona Inflada",
+                        "explicacion": "Cuando Keter recibe más Or del que puede contener, se genera una espiritualidad inflada y desconectada de la realidad terrenal.",
+                        "manifestaciones": [
+                            "Búsqueda obsesiva de significado en todo",
+                            "Desprecio por lo mundano y práctico",
+                            "Espiritualidad de escape en lugar de integración",
+                            "Sentimiento de superioridad espiritual"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Keter - La Corona Quebrada",
+                        "explicacion": "La vasija de Keter está demasiado vacía para recibir el Or, generando una crisis existencial profunda.",
+                        "manifestaciones": [
+                            "Sentimiento de vacío existencial",
+                            "Falta de dirección y propósito vital",
+                            "Desconexión de la guía interior",
+                            "Crisis de fe y significado"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Keter - Umbral de Propósito",
+                        "explicacion": "Keter en perfecto balance, momento de claridad existencial y conexión consciente con tu propósito.",
+                        "manifestaciones": [
+                            "Claridad sobre tu misión de vida",
+                            "Conexión equilibrada con lo trascendente",
+                            "Momento para decisiones existenciales importantes",
+                            "Integración armónica entre espíritu y materia"
+                        ]
+                    }
+                },
+                "Jojma": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Jojmá - Sabiduría Inundada",
+                        "explicacion": "Exceso de Or en Jojmá genera sobrecarga de ideas que no pueden materializarse.",
+                        "manifestaciones": [
+                            "Exceso de ideas sin aplicación práctica",
+                            "Inspiración constante sin concretar",
+                            "Dificultad para focalizar en un proyecto",
+                            "Frustración por no materializar visiones"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Jojmá - Sabiduría Obstruida",
+                        "explicacion": "Vasija bloqueada impidiendo el flujo de inspiración y comprensión profunda.",
+                        "manifestaciones": [
+                            "Bloqueo creativo persistente",
+                            "Incapacidad para ver soluciones innovadoras",
+                            "Mente rígida y poco flexible",
+                            "Falta de chispas inspiradoras"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Jojmá - Sabiduría Pura",
+                        "explicacion": "Jojmá en equilibrio perfecto, permitiendo recibir inspiración con capacidad de aplicación práctica.",
+                        "manifestaciones": [
+                            "Insights profundos y aplicables",
+                            "Creatividad fluida y productiva",
+                            "Capacidad para ver soluciones innovadoras",
+                            "Inspiración que se manifiesta naturalmente"
+                        ]
+                    }
+                },
+                "Bina": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Binah - Entendimiento Saturado",
+                        "explicacion": "Exceso de Or en Binah genera análisis excesivo y parálisis por sobrepensamiento.",
+                        "manifestaciones": [
+                            "Análisis interminable sin decisión",
+                            "Parálisis por exceso de información",
+                            "Dificultad para sintetizar y concluir",
+                            "Sobrepensamiento que agota mentalmente"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Binah - Entendimiento Fragmentado",
+                        "explicacion": "Vasija vacía genera confusión mental y dificultad para comprender relaciones complejas.",
+                        "manifestaciones": [
+                            "Confusión y desorganización mental",
+                            "Dificultad para entender conceptos abstractos",
+                            "Pensamiento fragmentado y desconectado",
+                            "Incapacidad para ver patrones y conexiones"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Binah - Entendimiento Profundo",
+                        "explicacion": "Binah en perfecto balance, permitiendo análisis profundos que conducen a decisiones sabias.",
+                        "manifestaciones": [
+                            "Capacidad de análisis que lleva a acción",
+                            "Comprensión profunda de situaciones complejas",
+                            "Pensamiento estructurado y claro",
+                            "Habilidad para discernir patrones ocultos"
+                        ]
+                    }
+                },
+                "Daat": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Daat - Conocimiento Forzado",
+                        "explicacion": "Exceso de Or genera conexiones artificiales y síntesis prematuras.",
+                        "manifestaciones": [
+                            "Conexiones forzadas entre ideas dispares",
+                            "Pseudosíntesis sin fundamento real",
+                            "Integración superficial de conceptos",
+                            "Conocimiento amplio pero poco profundo"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Daat - Conocimiento Desconectado",
+                        "explicacion": "Vasija vacía impide la integración del conocimiento, generando fragmentación.",
+                        "manifestaciones": [
+                            "Saberes desconectados y sin integración",
+                            "Dificultad para aplicar conocimiento teórico",
+                            "Fragmentación entre entender y saber",
+                            "Incapacidad para conectar ideas relacionadas"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Daat - Conocimiento Integrado",
+                        "explicacion": "Daat en equilibrio perfecto, permitiendo la verdadera síntesis del conocimiento.",
+                        "manifestaciones": [
+                            "Integración natural de saberes diversos",
+                            "Capacidad para aplicar teoría a la práctica",
+                            "Visión holística de situaciones complejas",
+                            "Síntesis creativa de ideas opuestas"
+                        ]
+                    }
+                },
+                "Jesed": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Jesed - Amor Devorador",
+                        "explicacion": "Exceso de Or genera generosidad sin límites que termina siendo asfixiante.",
+                        "manifestaciones": [
+                            "Generosidad que agota tus recursos",
+                            "Amor que sofoca en lugar de nutrir",
+                            "Dificultad para poner límites amorosos",
+                            "Sacrificio excesivo por otros"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Jesed - Amor Congelado",
+                        "explicacion": "Vasija bloqueada impidiendo el flujo de amor y generosidad.",
+                        "manifestaciones": [
+                            "Aislamiento emocional y afectivo",
+                            "Dificultad para dar y recibir amor",
+                            "Frialdad emocional y distancia",
+                            "Miedo a la intimidad y vulnerabilidad"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Jesed - Amor Incondicional",
+                        "explicacion": "Jesed en perfecto balance, permitiendo dar y recibir amor de manera libre.",
+                        "manifestaciones": [
+                            "Amor que nutre sin sofocar",
+                            "Generosidad equilibrada y sostenible",
+                            "Capacidad para poner límites amorosos",
+                            "Apertura emocional sin dependencia"
+                        ]
+                    }
+                },
+                "Gevura": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Gevurá - Fuerza Tiránica",
+                        "explicacion": "Exceso de Or genera fuerza desmedida que se convierte en rigidez y autoritarismo.",
+                        "manifestaciones": [
+                            "Rigidez extrema en principios y valores",
+                            "Control excesivo sobre otros",
+                            "Autoritarismo y falta de flexibilidad",
+                            "Juicio severo hacia sí mismo y otros"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Gevurá - Fuerza Quebrada",
+                        "explicacion": "Vasija vacía genera falta de límites e incapacidad para defenderse.",
+                        "manifestaciones": [
+                            "Indefensión y falta de límites",
+                            "Incapacidad para decir 'no'",
+                            "Indecisión crónica y falta de firmeza",
+                            "Permisividad que permite abusos"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Gevurá - Fuerza Justa",
+                        "explicacion": "Gevurá en equilibrio perfecto, permitiendo establecer límites con compasión.",
+                        "manifestaciones": [
+                            "Límites claros y respetuosos",
+                            "Firmeza sin rigidez",
+                            "Capacidad para decir no con amor",
+                            "Disciplina que empodera"
+                        ]
+                    }
+                },
+                "Tiferet": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Tiferet - Belleza Artificial",
+                        "explicacion": "Exceso de Or genera armonía superficial que evita el conflicto necesario.",
+                        "manifestaciones": [
+                            "Armonía superficial que evita conflictos",
+                            "Belleza estética sin sustancia real",
+                            "Equilibrio forzado que reprime emociones",
+                            "Imagen perfecta que oculta sombras"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Tiferet - Belleza Fragmentada",
+                        "explicacion": "Vasija bloqueada genera desequilibrio emocional y falta de centro.",
+                        "manifestaciones": [
+                            "Desequilibrio emocional constante",
+                            "Falta de centro y dirección clara",
+                            "Crisis de identidad y valores",
+                            "Incapacidad para integrar polaridades"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Tiferet - Belleza Auténtica",
+                        "explicacion": "Tiferet en perfecto balance, permitiendo la verdadera armonía que integra todas las partes.",
+                        "manifestaciones": [
+                            "Armonía interna auténtica",
+                            "Centro emocional estable",
+                            "Identidad integrada y coherente",
+                            "Capacidad para manejar conflictos constructivamente"
+                        ]
+                    }
+                },
+                "Netsaj": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Netsaj - Victoria Desbocada",
+                        "explicacion": "Exceso de Or genera hiperactividad y dispersión energética.",
+                        "manifestaciones": [
+                            "Hiperactividad y multitasking excesivo",
+                            "Inicio de múltiples proyectos sin terminar",
+                            "Dispersión energética y falta de enfoque",
+                            "Impaciencia por resultados inmediatos"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Netsaj - Victoria Estancada",
+                        "explicacion": "Vasija vacía genera desmotivación y dificultad para concretar metas.",
+                        "manifestaciones": [
+                            "Desmotivación y falta de impulso",
+                            "Abandono de proyectos al primer obstáculo",
+                            "Falta de perseverancia y constancia",
+                            "Dificultad para visualizar el éxito"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Netsaj - Victoria Sostenible",
+                        "explicacion": "Netsaj en equilibrio perfecto, permitiendo iniciativa efectiva y capacidad para concretar.",
+                        "manifestaciones": [
+                            "Iniciativa equilibrada con perseverancia",
+                            "Capacidad para concretar proyectos",
+                            "Energía sostenible sin agotamiento",
+                            "Visión clara con acción consistente"
+                        ]
+                    }
+                },
+                "Hod": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Hod - Gloria Excesiva",
+                        "explicacion": "Exceso de Or genera análisis estéril y racionalización excesiva.",
+                        "manifestaciones": [
+                            "Análisis interminable sin acción",
+                            "Racionalización que justifica inacción",
+                            "Perfeccionismo paralizante",
+                            "Sobre-estructuración de procesos"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Hod - Gloria Desorganizada",
+                        "explicacion": "Vasija vacía genera caos mental y falta de estructura.",
+                        "manifestaciones": [
+                            "Caos mental y desorganización",
+                            "Dificultad para seguir procesos",
+                            "Falta de método y sistematicidad",
+                            "Pensamiento desestructurado"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Hod - Gloria Estructurada",
+                        "explicacion": "Hod en perfecto balance, permitiendo análisis profundo que conduce a acción efectiva.",
+                        "manifestaciones": [
+                            "Pensamiento analítico que lleva a acción",
+                            "Estructura que facilita la creatividad",
+                            "Capacidad para organizar procesos complejos",
+                            "Análisis que ilumina en lugar de paralizar"
+                        ]
+                    }
+                },
+                "Yesod": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Yesod - Fundación Líquida",
+                        "explicacion": "Exceso de Or genera identidad líquida y adaptación excesiva.",
+                        "manifestaciones": [
+                            "Identidad cambiante según el contexto",
+                            "Adaptación excesiva a expectativas ajenas",
+                            "Falta de núcleo identitario estable",
+                            "Dificultad para mantener coherencia personal"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Yesod - Fundación Quebrada",
+                        "explicacion": "Vasija vacía genera falta de identidad y desarraigo.",
+                        "manifestaciones": [
+                            "Falta de sentido de identidad claro",
+                            "Desarraigo y sensación de no pertenencia",
+                            "Dificultad para conectar con el propio cuerpo",
+                            "Inestabilidad emocional básica"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Yesod - Fundación Sólida",
+                        "explicacion": "Yesod en equilibrio perfecto, permitiendo una identidad estable y flexible.",
+                        "manifestaciones": [
+                            "Identidad clara y flexible",
+                            "Buen contacto con el cuerpo y emociones",
+                            "Autoexpresión auténtica y coherente",
+                            "Fundación psíquica sólida"
+                        ]
+                    }
+                },
+                "Malkuth": {
+                    "overflow": {
+                        "title": "Klipa de Desborde en Malkuth - Reino Materialista",
+                        "explicacion": "Exceso de Or genera acumulación vacía y materialismo.",
+                        "manifestaciones": [
+                            "Acumulación material sin significado",
+                            "Materialismo y apego a posesiones",
+                            "Identificación excesiva con logros terrenales",
+                            "Dificultad para soltar y dejar fluir"
+                        ]
+                    },
+                    "vacuum": {
+                        "title": "Klipa de Vacío en Malkuth - Reino Desconectado",
+                        "explicacion": "Vasija vacía genera desconexión terrenal y dificultad para manifestar.",
+                        "manifestaciones": [
+                            "Desconexión del cuerpo y lo físico",
+                            "Dificultad para materializar ideas",
+                            "Vivir en abstracciones sin anclaje real",
+                            "Problemas prácticos recurrentes"
+                        ]
+                    },
+                    "critical": {
+                        "title": "Punto Crítico en Malkuth - Reino Consciente",
+                        "explicacion": "Malkuth en perfecto balance, permitiendo la manifestación consciente con propósito.",
+                        "manifestaciones": [
+                            "Manifestación alineada con propósito",
+                            "Presencia plena en lo físico",
+                            "Capacidad para disfrutar lo sensorial",
+                            "Habilidad para materializar visiones"
+                        ]
+                    }
+                }
+            };
+            
+            return explanations[sefira]?.[type] || {
+                "title": `Klipa ${type === "overflow" ? "de Desborde" : type === "vacuum" ? "de Vacío" : "Crítica"} en ${sefira}`,
+                "explicacion": "Esta Sefirá se encuentra en un estado de desbalance energético que necesita atención y transformación consciente.",
+                "manifestaciones": [
+                    "Expresión desequilibrada de la energía de esta Sefirá",
+                    "Dificultad para integrar esta dimensión de manera armónica",
+                    "Patrones repetitivos relacionados con este ámbito",
+                    "Resistencia al flujo natural en esta área"
+                ]
+            };
+        }
+
+        // ========== SISTEMA DE TIKKUN v4.0 ==========
+        function generateTikkunPractices(emergent, tenseMap, klipot, or) {
+            const practices = [];
+            
+            practices.push({
+                priority: "Alta",
+                sefira: emergent.shadowCentral.name,
+                title: "Tikkun de la Sombra Central - " + emergent.shadowCentral.name,
+                description: "Práctica específica para transformar el núcleo del desafío principal en " + emergent.shadowCentral.name,
+                duration: "15-20 min diarios",
+                frequency: "Diaria",
+                purpose: "Transformar el núcleo del desafío principal"
+            });
+            
+            practices.push({
+                priority: "Alta", 
+                sefira: emergent.missionKey.name,
+                title: "Activación de la Llave - " + emergent.missionKey.name,
+                description: "Práctica para activar el recurso de solución en " + emergent.missionKey.name,
+                duration: "10-15 min diarios",
+                frequency: "Diaria", 
+                purpose: "Activar el recurso de solución"
+            });
+            
+            return practices;
+        }
+
+        function generateWeekPlan(practices) {
+            return '<div class="week-plan"><h4>📅 Plan Semanal de Tikkun</h4><p>Plan personalizado basado en tus Klipot específicas</p></div>';
+        }
+
+        // ========== FUNCIÓN PRINCIPAL INTEGRADA ==========
+        function calculateAIOK() {
+            const birthDate = document.getElementById('birthDate').value;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('analysis-results');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            
+            if (!birthDate) {
+                showError('Por favor selecciona una fecha de nacimiento');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            setTimeout(function() {
+                try {
+                    const dateParts = birthDate.split('-');
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]);
+                    const day = parseInt(dateParts[2]);
+                    
+                    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                        showError('Fecha de nacimiento inválida');
+                        return;
+                    }
+                    
+                    const d_raw = day;
+                    const m_raw = month;
+                    const a_raw = year;
+                    
+                    const d = reduceNumber(d_raw);
+                    const m = reduceNumber(m_raw);
+                    const a = reduceNumber(a_raw);
+                    const or = reduceNumber(d + m + a);
+                    
+                    // CALCULOS COMPLETOS
+                    const kliMap = calculateAllSefirot(d, m, a);
+                    const emergent = findEmergentSefirot(kliMap);
+                    const tenseMap = calculateAllTense(or, kliMap);
+                    const klipot = analyzeKlipot(tenseMap);
+                    
+                    const practices = generateTikkunPractices(emergent, tenseMap, klipot, or);
+                    const weekPlan = generateWeekPlan(practices);
+                    
+                    const sefirotDefs = {
+                        "Keter": "Corona - Propósito Supremo",
+                        "Jojma": "Sabiduría - Inspiración Pura", 
+                        "Bina": "Entendimiento - Mente Analítica",
+                        "Daat": "Conocimiento - Integración",
+                        "Jesed": "Amor - Expansión",
+                        "Gevura": "Fuerza - Límites",
+                        "Tiferet": "Belleza - Equilibrio",
+                        "Netsaj": "Victoria - Perseverancia",
+                        "Hod": "Gloria - Procesamiento",
+                        "Yesod": "Fundación - Identidad",
+                        "Malkuth": "Reino - Manifestación"
+                    };
+                    
+                    const orMeanings = {
+                        1: "liderazgo auténtico y voluntad soberana",
+                        2: "diplomacia y colaboración", 
+                        3: "expresión creativa y comunicación",
+                        4: "estabilidad y trabajo práctico",
+                        5: "libertad y adaptabilidad",
+                        6: "amor incondicional y belleza",
+                        7: "sabiduría e introspección",
+                        8: "poder y abundancia",
+                        9: "compasión universal"
+                    };
+                    
+                    let resultHTML = '';
+                    
+                    // 1. DATOS BASE
+                    resultHTML += '<div class="result-card">';
+                    resultHTML += '<h3>📊 Datos de Nacimiento</h3>';
+                    resultHTML += '<p>Fecha: ' + birthDate + '</p>';
+                    resultHTML += '<p>Día: ' + d_raw + ' | Mes: ' + m_raw + ' | Año: ' + a_raw + '</p>';
+                    resultHTML += '</div>';
+                    
+                    // 2. POTENCIAL DE MISIÓN
+                    resultHTML += '<div class="result-card">';
+                    resultHTML += '<h3>💫 Potencial de Misión (Or)</h3>';
+                    resultHTML += '<p><strong>Número ' + or + '</strong> - ' + (orMeanings[or] || "potencial único") + '</p>';
+                    resultHTML += '</div>';
+                    
+                    // 3. SEFIROT EMERGENTES
+                    resultHTML += '<div class="result-card emergency-card">';
+                    resultHTML += '<h3>🎯 Triada de Sefirot Emergentes</h3>';
+                    resultHTML += '<div class="sefirot-grid">';
+                    resultHTML += '<div class="sefira-item emergency-item">';
+                    resultHTML += '<strong>' + emergent.shadowCentral.name + '</strong><br>';
+                    resultHTML += 'Kli: ' + emergent.shadowCentral.value + '<br>';
+                    resultHTML += '<small>' + sefirotDefs[emergent.shadowCentral.name] + '</small>';
+                    resultHTML += '</div>';
+                    resultHTML += '<div class="sefira-item">';
+                    resultHTML += '<strong>' + emergent.secondary.name + '</strong><br>';
+                    resultHTML += 'Kli: ' + emergent.secondary.value + '<br>';
+                    resultHTML += '<small>' + sefirotDefs[emergent.secondary.name] + '</small>';
+                    resultHTML += '</div>';
+                    resultHTML += '<div class="sefira-item">';
+                    resultHTML += '<strong>' + emergent.tertiary.name + '</strong><br>';
+                    resultHTML += 'Kli: ' + emergent.tertiary.value + '<br>';
+                    resultHTML += '<small>' + sefirotDefs[emergent.tertiary.name] + '</small>';
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    
+                    // 4. LLAVE DE LA MISIÓN
+                    resultHTML += '<div class="result-card key-card">';
+                    resultHTML += '<h3>🔑 Llave de la Misión</h3>';
+                    resultHTML += '<p><strong>' + emergent.missionKey.name + '</strong> (Kli ' + emergent.missionKey.value + ')</p>';
+                    resultHTML += '<p>' + sefirotDefs[emergent.missionKey.name] + '</p>';
+                    resultHTML += '<p><em>Esta Sefira contiene la solución para transformar tu Sombra Central</em></p>';
+                    resultHTML += '</div>';
+                    
+                    // 5. RESUMEN DEL ESTADO ENERGÉTICO
+                    resultHTML += '<div class="result-card key-card">';
+                    resultHTML += '<h3>📈 Resumen del Estado Energético</h3>';
+                    
+                    const overflowCount = klipot.overflow.length;
+                    const vacuumCount = klipot.vacuum.length;
+                    const criticalCount = klipot.critical.length;
+                    
+                    resultHTML += '<div class="summary-grid">';
+                    resultHTML += '<div class="summary-item" style="background: #fff5f5;">';
+                    resultHTML += '<strong>Vasijas Vacías</strong><br>';
+                    resultHTML += '<div class="summary-value" style="color: var(--danger);">' + vacuumCount + '</div>';
+                    resultHTML += '<small>Áreas bloqueadas</small>';
+                    resultHTML += '</div>';
+                    
+                    resultHTML += '<div class="summary-item" style="background: #fff4e6;">';
+                    resultHTML += '<strong>Desbordes</strong><br>';
+                    resultHTML += '<div class="summary-value" style="color: var(--warning);">' + overflowCount + '</div>';
+                    resultHTML += '<small>Excesos por canalizar</small>';
+                    resultHTML += '</div>';
+                    
+                    resultHTML += '<div class="summary-item" style="background: #f0f9ff;">';
+                    resultHTML += '<strong>Puntos Críticos</strong><br>';
+                    resultHTML += '<div class="summary-value" style="color: var(--success);">' + criticalCount + '</div>';
+                    resultHTML += '<small>Áreas en transformación</small>';
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    
+                    let diagnostico = "";
+                    if (vacuumCount >= 3) {
+                        diagnostico = "Perfil predominantemente bloqueado - Necesita activación energética";
+                    } else if (overflowCount >= 3) {
+                        diagnostico = "Perfil predominantemente expansivo - Necesita canalización y enfoque";
+                    } else if (criticalCount >= 2) {
+                        diagnostico = "Perfil en transformación activa - Momentos de integración clave";
+                    } else {
+                        diagnostico = "Perfil balanceado - Enfocarse en la Sombra Central y Llave de Misión";
+                    }
+                    
+                    resultHTML += '<p><strong>Diagnóstico:</strong> ' + diagnostico + '</p>';
+                    resultHTML += '</div>';
+                    
+                    // 6. MAPA DE PRESIONES
+                    resultHTML += '<div class="result-card">';
+                    resultHTML += '<h3>🗺️ Mapa Completo de Presiones (TenSe)</h3>';
+                    resultHTML += '<div class="tense-map">';
+                    
+                    for (const [sefira, tense] of Object.entries(tenseMap)) {
+                        const isEmergent = [emergent.shadowCentral.name, emergent.secondary.name, emergent.tertiary.name].includes(sefira);
+                        const itemClass = isEmergent ? 'emergency-item' : 
+                                         tense.type === 'overflow' ? 'overflow-item' : 
+                                         tense.type === 'critical' ? 'critical-item' : '';
+                        
+                        resultHTML += '<div class="tense-item ' + itemClass + '">';
+                        resultHTML += '<strong>' + sefira + '</strong><br>';
+                        resultHTML += '<div class="tense-value">' + (tense.value === Infinity ? "∞" : tense.value.toFixed(2)) + '</div>';
+                        resultHTML += '<small>' + tense.state + '</small>';
+                        resultHTML += '</div>';
+                    }
+                    
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    
+                    // 7. KLIPOT DE DESBORDE - TODAS
+                    if (klipot.overflow.length > 0) {
+                        resultHTML += '<div class="result-card overflow-card">';
+                        resultHTML += '<h3>🔥 Klipot de Desborde (TenSe > 1) - ' + klipot.overflow.length + ' detectadas</h3>';
+                        resultHTML += '<p><em>Áreas con exceso de energía que necesitan canalización</em></p>';
+                        
+                        klipot.overflow.sort((a, b) => b.tense.value - a.tense.value);
+                        
+                        klipot.overflow.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "overflow");
+                            
+                            resultHTML += '<div class="klipa-section klipa-overflow">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.sefira + '</strong>';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + (klipa.tense.value === Infinity ? "∞" : klipa.tense.value.toFixed(2));
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += '<div class="explanation-title">' + (index + 1) + '. ' + deepExplanation.title + '</div>';
+                            resultHTML += '<p>' + deepExplanation.explicacion + '</p>';
+                            resultHTML += '<p><strong>Manifestaciones comunes:</strong></p>';
+                            resultHTML += '<ul>';
+                            deepExplanation.manifestaciones.forEach(m => {
+                                resultHTML += '<li>' + m + '</li>';
+                            });
+                            resultHTML += '</ul>';
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 8. KLIPOT DE VASIJA VACÍA - TODAS
+                    if (klipot.vacuum.length > 0) {
+                        resultHTML += '<div class="result-card emergency-card">';
+                        resultHTML += '<h3>💢 Klipot de Vasija Vacía (TenSe < 1) - ' + klipot.vacuum.length + ' detectadas</h3>';
+                        resultHTML += '<p><em>Áreas con bloqueo energético que necesitan activación</em></p>';
+                        
+                        klipot.vacuum.sort((a, b) => a.tense.value - b.tense.value);
+                        
+                        klipot.vacuum.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "vacuum");
+                            
+                            resultHTML += '<div class="klipa-section klipa-vacuum">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.sefira + '</strong>';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + klipa.tense.value.toFixed(2);
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += '<div class="explanation-title">' + (index + 1) + '. ' + deepExplanation.title + '</div>';
+                            resultHTML += '<p>' + deepExplanation.explicacion + '</p>';
+                            resultHTML += '<p><strong>Manifestaciones comunes:</strong></p>';
+                            resultHTML += '<ul>';
+                            deepExplanation.manifestaciones.forEach(m => {
+                                resultHTML += '<li>' + m + '</li>';
+                            });
+                            resultHTML += '</ul>';
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 9. PUNTOS CRÍTICOS - TODOS
+                    if (klipot.critical.length > 0) {
+                        resultHTML += '<div class="result-card key-card">';
+                        resultHTML += '<h3>⚡ Puntos Críticos (TenSe = 1) - ' + klipot.critical.length + ' detectados</h3>';
+                        resultHTML += '<p><em>Áreas en perfecto balance energético - momentos de máxima potencialidad transformadora</em></p>';
+                        
+                        klipot.critical.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "critical");
+                            
+                            resultHTML += '<div class="klipa-section klipa-critical">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.sefira + '</strong>';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + klipa.tense.value.toFixed(2);
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += '<div class="explanation-title">' + (index + 1) + '. ' + deepExplanation.title + '</div>';
+                            resultHTML += '<p>' + deepExplanation.explicacion + '</p>';
+                            resultHTML += '<p><strong>Oportunidades de transformación:</strong></p>';
+                            resultHTML += '<ul>';
+                            deepExplanation.manifestaciones.forEach(m => {
+                                resultHTML += '<li>' + m + '</li>';
+                            });
+                            resultHTML += '</ul>';
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 10. BOTÓN PARA TIKKUN
+                    resultHTML += '<div class="result-card tikkun-card">';
+                    resultHTML += '<h3>🔮 ¿Listo para Transformar?</h3>';
+                    resultHTML += '<p>Tu análisis está completo. Ahora puedes ver tu plan personalizado de Tikkun.</p>';
+                    resultHTML += '<button class="secondary" onclick="showTikkunPlan()">Ver Mi Plan de Tikkun</button>';
+                    resultHTML += '</div>';
+                    
+                    results.innerHTML = resultHTML;
+                    loading.style.display = 'none';
+                    results.style.display = 'block';
+                    
+                    window.currentAnalysis = { practices, weekPlan, or, emergent };
+                    
+                } catch (error) {
+                    loading.style.display = 'none';
+                    showError('Error en el cálculo: ' + error.message);
+                }
+            }, 1500);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function showTikkunPlan() {
+            if (!window.currentAnalysis) {
+                showError('Completa el análisis primero');
+                return;
+            }
+            
+            const { practices, weekPlan, or, emergent } = window.currentAnalysis;
+            
+            const tikkunHTML = `
+                <div class="result-card tikkun-card">
+                    <h3>🔮 Plan de Tikkun Personalizado</h3>
+                    <p>Basado en tu análisis: Or ${or} - Sombra: ${emergent.shadowCentral.name}</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3>🎯 Prácticas de Reparación</h3>
+                    <div class="practice-grid">
+                        ${practices.map(practice => `
+                            <div class="practice-item">
+                                <div class="practice-priority">${practice.priority} Prioridad</div>
+                                <h4>${practice.title}</h4>
+                                <div class="practice-duration">${practice.duration} | ${practice.frequency}</div>
+                                <p>${practice.description}</p>
+                                <small><strong>Propósito:</strong> ${practice.purpose}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>📅 Organización Semanal</h3>
+                    ${weekPlan}
+                </div>
+                
+                <div class="result-card">
+                    <h3>🔄 Volver al Análisis</h3>
+                    <button onclick="showAnalysis()">📊 Ver Análisis Completo</button>
+                </div>
+            `;
+            
+            document.getElementById('tikkun-tab').innerHTML = tikkunHTML;
+            document.querySelector('[data-tab="tikkun"]').click();
+        }
+
+        function showAnalysis() {
+            document.querySelector('[data-tab="analysis"]').click();
+        }
+
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('calculateBtn').addEventListener('click', calculateAIOK);
+        });
+    </script>
+</body>
+</html>
