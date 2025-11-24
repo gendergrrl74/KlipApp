@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klipapp v5.0 - Sistema TenSe Final</title>
+    <style>
+        :root {
+            --primary: #2c5530;
+            --secondary: #6f42c1;
+            --danger: #dc3545;
+            --warning: #fd7e14;
+            --success: #20c997;
+            --light: #f8f9fa;
+            --dark: #333;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 10px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        h1 span.icon {
+            font-size: 1.5em; 
+            margin-right: 10px; 
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="date"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        button:hover { 
+            background: #1e3a23; 
+        }
+        
+        button.secondary {
+            background: var(--secondary);
+        }
+        
+        button.secondary:hover {
+            background: #5a359a;
+        }
+        
+        .results { 
+            margin-top: 30px; 
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .emergency-card {
+            border-left-color: var(--danger);
+            background: #fff5f5;
+        }
+        
+        .key-card {
+            border-left-color: var(--success);
+            background: #f0f9ff;
+        }
+        
+        .tikkun-card {
+            border-left-color: var(--secondary);
+            background: #f8f9ff;
+        }
+        
+        .overflow-card {
+            border-left-color: var(--warning);
+            background: #fff4e6;
+        }
+        
+        .tense-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .tense-severe { background: var(--danger); color: white; }
+        .tense-low { background: var(--warning); color: white; }
+        .tense-critical { background: #ffc107; color: black; }
+        .tense-high { background: var(--success); color: white; }
+        
+        .loading { 
+            text-align: center; 
+            padding: 20px; 
+            display: none; 
+        }
+        
+        .tense-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .tense-item {
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+        
+        .tense-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .practice-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .practice-priority {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+        
+        .klipa-section {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .klipa-overflow {
+            background: #fff4e6;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .klipa-vacuum {
+            background: #fff5f5;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .klipa-critical {
+            background: #f0f9ff;
+            border-left: 4px solid var(--success);
+        }
+        
+        .error-message {
+            color: var(--danger);
+            background: #fff5f5;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .explanation-section {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 6px;
+        }
+        
+        .explanation-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .map-legend {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .interpret-text {
+            margin-top: 5px;
+            font-size: 0.85em;
+            font-style: italic;
+            color: #495057;
+        }
+        
+        .positions-card {
+            border-left: 4px solid var(--secondary);
+            background: #f8f9ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .position-item {
+            margin-bottom: 15px;
+        }
+        
+        .position-title {
+            font-weight: bold;
+            color: var(--secondary);
+            display: block;
+        }
+        
+        @media (max-width: 600px) {
+            .input-section, .nav-tabs { 
+                flex-direction: column; 
+            }
+            
+            input[type="date"] { 
+                min-width: 100%; 
+            }
+            
+            .tense-map, .practice-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="icon">🌳✨</span> Klipapp v5.0</h1>
+        <div class="subtitle">Mapa de distorsiones del Arbol de la Vida</div>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="analysis">📊 Análisis Completo</div>
+            <div class="nav-tab" data-tab="tikkun">🔮 Plan de Tikkun</div>
+        </div>
+
+        <div class="tab-content active" id="analysis-tab">
+            <div class="input-section">
+                <input type="date" id="birthDate" value="1972-06-13"> 
+                <button id="calculateBtn">Calcular Mapa de distorsiones</button>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="loading" id="loading">
+                <p>🔄 Analizando tu cartografía energética completa...</p>
+            </div>
+            
+            <div class="results" id="analysis-results">
+                <div class="result-card">
+                    <p>Ingresa tu fecha de nacimiento para ver tu mapa completo de presiones y Klipot.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tikkun-tab">
+            <div class="result-card">
+                <h3>🔮 Plan Personalizado de Tikkun</h3>
+                <p>Completa el análisis primero para generar tu plan de transformación.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SISTEMA DE NAVEGACIÓN ==========
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.add('active');
+            });
+        });
+
+        // ========== MOTOR DE CÁLCULO TenSe (FINAL) ==========
+        
+        // FUNCIÓN DE REDUCCIÓN NUMÉRICA 
+        function reduceNumber(num) {
+            if (num === 11 || num === 22 || num === 33) return num;
+            
+            let result = num;
+            while (result > 9) {
+                let sum = 0;
+                const str = result.toString();
+                for (let i = 0; i < str.length; i++) {
+                    sum += parseInt(str[i]);
+                }
+                result = sum;
+                if (result === 11 || result === 22 || result === 33) break;
+            }
+            return result;
+        }
+
+        // 1. CALCULA LOS CUATRO KLIPOT (DESAFÍOS) - KLI
+        function calculateKliChallenges(d, m, a) {
+            const kli_1_youth = Math.abs(m - d); // Kli del Alma/Jesed
+            const kli_2_maturity = Math.abs(d - a); // Kli del Destino/Keter
+            const kli_3_main = Math.abs(kli_1_youth - kli_2_maturity); // Kli de la Misión
+            const kli_4_karma = Math.abs(m - a); // Kli del Karma/Tiferet
+            
+            return {
+                KliAlma: reduceNumber(kli_1_youth), // Aseguramos que el Kli esté reducido
+                KliDestino: reduceNumber(kli_2_maturity), 
+                KliMision: reduceNumber(kli_3_main), 
+                KliKarma: reduceNumber(kli_4_karma)
+            };
+        }
+        
+        // 2. CALCULA EL TenSe PARA CADA POSICIÓN
+        function calculateTense(or, kli) {
+            if (kli === 0) {
+                return { value: Infinity, state: "Flujo Puro (∞)", badge: "tense-high", type: "overflow" };
+            }
+            
+            if (or === 0) {
+                return { value: 0, state: "Vasija Vacía", badge: "tense-low", type: "vacuum" };
+            }
+            
+            const tenseValue = or / kli;
+            
+            if (tenseValue < 0.7) {
+                return { value: tenseValue, state: "Subpresión Severa", badge: "tense-severe", type: "vacuum" };
+            }
+            if (tenseValue < 1) {
+                return { value: tenseValue, state: "Subpresión", badge: "tense-low", type: "vacuum" };
+            }
+            if (tenseValue === 1) {
+                return { value: tenseValue, state: "Punto Crítico", badge: "tense-critical", type: "critical" };
+            }
+            // TenSe > 1
+            return { value: tenseValue, state: "Sobrepresión", badge: "tense-high", type: "overflow" };
+        }
+        
+        // 3. FUNCIÓN DE INTERPRETACIÓN PRÁCTICA
+        function getTenseInterpretation(position, tense) {
+            const type = tense.type;
+            const value = tense.value;
+            const sefira = position.split('(')[0].trim();
+
+            let interpretation = "";
+
+            if (type === "overflow") {
+                if (value === Infinity) {
+                    interpretation = "Maestría Pura. Potencial sin resistencia. El enfoque es clave para canalizar esta inmensa energía sin agotamiento.";
+                } else if (value >= 2.0) {
+                    interpretation = "Recurso Excedente. Este talento es fuerte, pero corre el riesgo de ser impuesto o de generar agotamiento si no se le aplica una restricción (Tzimtzum) consciente.";
+                } else {
+                    interpretation = "Flujo Dominante. El potencial supera la resistencia. Es una zona de confort que debe ser conscientemente canalizada para evitar la dispersión.";
+                }
+            } else if (type === "critical") {
+                interpretation = "Umbral de Transformación. La Luz y la Sombra son iguales. Cada esfuerzo en esta área produce un crecimiento máximo. Requiere **coherencia y elección consciente**.";
+            } else if (type === "vacuum") {
+                interpretation = "Potencial Paralizado. La resistencia (Kli) es mayor que el potencial (Or). Esta área se siente como un gran obstáculo y requiere **activación externa** para romper la inercia.";
+            }
+
+            return interpretation;
+        }
+
+        // 4. CALCULA LOS TENsE PARA LAS POSICIONES PRINCIPALES
+        function calculateTensePrincipales(d_raw, m_raw, a_raw, or_total) {
+            const d = reduceNumber(d_raw); // Día (Alma)
+            const m = reduceNumber(m_raw); // Mes (Karma)
+            const a = reduceNumber(a_raw); // Año (Destino)
+            
+            // Calcula los 4 Desafíos (Kli)
+            const challenges = calculateKliChallenges(d, m, a);
+            
+            // ASIGNACIÓN OR/KLI/TENsE
+            
+            // 1. ALMA (Día) vs Kli JUVENTUD (Mes - Día)
+            const tenseAlma = calculateTense(d, challenges.KliAlma); 
+            // 2. KARMA (Mes) vs Kli KARMA (Mes - Año)
+            const tenseKarma = calculateTense(m, challenges.KliKarma); 
+            // 3. DESTINO (Año) vs Kli MADUREZ (Día - Año)
+            const tenseDestino = calculateTense(a, challenges.KliDestino); 
+            // 4. MISIÓN (Total) vs Kli PRINCIPAL (Kli Juventud - Kli Madurez)
+            const tenseMision = calculateTense(or_total, challenges.KliMision);
+            
+            return {
+                Alma: { or: d, kli: challenges.KliAlma, tense: tenseAlma, sefira: "Jesed/Gevura (Alma)" },
+                Karma: { or: m, kli: challenges.KliKarma, tense: tenseKarma, sefira: "Tiferet (Corazón)" },
+                Destino: { or: a, kli: challenges.KliDestino, tense: tenseDestino, sefira: "Keter/Binah (Mente)" },
+                Mision: { or: or_total, kli: challenges.KliMision, tense: tenseMision, sefira: "Daat (Propósito)" }
+            };
+        }
+
+        function analyzeKlipot(tenseResults) {
+            const klipot = {
+                overflow: [],
+                vacuum: [],
+                critical: []
+            };
+            
+            for (const position in tenseResults) {
+                const result = tenseResults[position];
+                const item = {
+                    position: position, 
+                    sefira: result.sefira,
+                    or: result.or,
+                    kli: result.kli,
+                    tense: result.tense
+                };
+                
+                if (result.tense.type === "overflow") klipot.overflow.push(item);
+                if (result.tense.type === "vacuum") klipot.vacuum.push(item);
+                if (result.tense.type === "critical") klipot.critical.push(item);
+            }
+            
+            return klipot;
+        }
+
+
+        // ========== FUNCIONES DE EXPLICACIÓN ARQUETÍPICA ==========
+
+        // Mapeo de Potencial de Misión (Or Total)
+        function getMisionExplanation(orTotal) {
+            const misionMap = {
+                1: { arquetipo: "El Pionero / El Líder", potencial: "Desarrollar la **voluntad** soberana, la individualidad, la autonomía, y el valor para iniciar nuevos caminos.", sombra: "La dependencia, el miedo a la soledad, el egoísmo, o la tiranía." },
+                2: { arquetipo: "El Colaborador / El Pacificador", potencial: "Aprender la **diplomacia**, la cooperación, la sensibilidad, y a encontrar el equilibrio en las relaciones.", sombra: "La timidez, la duda constante, la codependencia, o el servilismo." },
+                3: { arquetipo: "El Artista / El Comunicador", potencial: "Manifestar la **alegría**, la expresión creativa, la sociabilidad, y el optimismo.", sombra: "La superficialidad, la dispersión, la auto-censura, o el chisme." },
+                4: { arquetipo: "El Constructor / El Hacedor", potencial: "Establecer la **disciplina**, la estructura, la constancia, el orden, y la ética de trabajo.", sombra: "La rigidez, la terquedad, la lentitud, o el miedo a la inestabilidad." },
+                5: { arquetipo: "El Viajero / El Libertador", potencial: "Integrar la **libertad**, el cambio, la adaptabilidad, la curiosidad, y la experiencia sensorial.", sombra: "La inestabilidad, la impulsividad, la irresponsabilidad, o el miedo al compromiso." },
+                6: { arquetipo: "El Sanador / El Servidor", potencial: "Encontrar la **armonía**, el amor incondicional, la responsabilidad familiar, y la belleza.", sombra: "La sobreprotección, el perfeccionismo, la codependencia, o el sentirse mártir." },
+                7: { arquetipo: "El Sabio / El Buscador", potencial: "Desarrollar la **introspección**, la fe, la sabiduría interna, la especialización, y la conexión espiritual.", sombra: "El aislamiento, el cinismo, el escepticismo extremo, o la evasión de la realidad." },
+                8: { arquetipo: "El Poderoso / El Administrador", potencial: "Manifestar la **abundancia**, el poder, la autoridad, la gestión, y el uso ético de los recursos materiales.", sombra: "La ambición desmedida, el abuso de poder, el materialismo vacío, o la victimización financiera." },
+                9: { arquetipo: "El Filántropo / El Humanista", potencial: "Cultivar la **compasión**, el servicio universal, la integración, y la visión global.", sombra: "El apego al pasado, el resentimiento, la dispersión, o el desapego excesivo." },
+                11: { arquetipo: "El Canal / El Maestro (Alta Tensión)", potencial: "Dominar la **intuición** elevada, la inspiración, y actuar como mensajero de la verdad, amplificando el potencial 2.", sombra: "La ansiedad, la neurosis, la hipersensibilidad, o la percepción ilusoria." },
+                22: { arquetipo: "El Constructor Maestro (Alta Tensión)", potencial: "Capacidad para **materializar** ideas a gran escala con conciencia y propósito colectivo, amplificando el potencial 4.", sombra: "La indolencia, la negligencia, la tiranía, o el uso del poder para fines egoístas." },
+                33: { arquetipo: "El Avatar / El Guía (Alta Tensión)", potencial: "La maestría en el **Amor Incondicional** y la enseñanza a través del ejemplo y la sanación, amplificando el potencial 6.", sombra: "El sacrificio excesivo (martirio), la irresponsabilidad, o el desequilibrio emocional." }
+            };
+
+            return misionMap[orTotal] || { arquetipo: "Número Desconocido", potencial: "No hay arquetipo definido.", sombra: "No hay sombra definida." };
+        }
+
+        // Mapeo de Midot (Virtudes) y Sombra (Klipa) del Kli
+        function getMidaForKlipa(kliNumber) {
+            const midaMap = {
+                1: { mida: "Liderazgo Auténtico y Voluntad Soberana", klipa: "La Tiranía / Egoísmo" },
+                2: { mida: "Diplomacia y Colaboración Consciente", klipa: "La Indecisión / Dependencia" },
+                3: { mida: "Alegría, Flujo Creativo y Comunicación Clara", klipa: "La Dispersión / Vanidad" },
+                4: { mida: "Disciplina, Justicia y Estabilidad Emocional", klipa: "La Rigidez / Terquedad" },
+                5: { mida: "Libertad y Adaptabilidad", klipa: "La Irresponsabilidad / Impulsividad" },
+                6: { mida: "Amor Incondicional y Armonía Duradera", klipa: "La Sobreprotección / Mártir" },
+                7: { mida: "Fe (Confianza), Sabiduría Interna y Perseverancia", klipa: "El Aislamiento / Cinismo" },
+                8: { mida: "Sistematicidad, Orden y Gestión de la Abundancia", klipa: "La Ambición Desmedida / Abuso de Poder" },
+                9: { mida: "Compasión y Finalización de Ciclos (Integración)", klipa: "El Apego / Resentimiento" }
+            };
+            
+            const num = reduceNumber(kliNumber); // Aseguramos que solo usamos el número reducido
+            return midaMap[num] || { mida: `Virtud de Transformación (Kli ${kliNumber})`, klipa: `Sombra del Desafío ${kliNumber}` };
+        }
+        
+        // Función de Explicación de las 4 Posiciones (Versión breve y concisa)
+        function getPosicionesExplanationHTML() {
+            return `
+                <div class="positions-card">
+                    <h3>🧭 Las Cuatro Posiciones de la Cartografía Personal</h3>
+                    <div class="map-legend" style="border-left: 4px solid var(--secondary); background: #f0f9ff;">
+                        <p>Cada posición revela un área de tu vida y su cálculo muestra la **presión energética (TenSe)** que experimentas en ese dominio.</p>
+                        <p>$$\text{Coeficiente TenSe} = \\frac{\text{Or (Luz/Potencial)}}{\text{Kli (Vasija/Sombra)}}$$</p>
+                    </div>
+                    
+                    <div class="position-item">
+                        <span class="position-title">ALMA (Día de Nacimiento):</span> Es tu **esencia pura e instinto.** Lo que eres cuando nadie te observa y tu verdad fundamental.
+                    </div>
+                    <div class="position-item">
+                        <span class="position-title">KARMA (Mes de Nacimiento):</span> Es tu **personalidad y relaciones.** El filtro emocional que usas y tus pruebas recurrentes de armonía.
+                    </div>
+                    <div class="position-item">
+                        <span class="position-title">DESTINO (Año de Nacimiento):</span> Es el **rol y voluntad.** El propósito que vienes a perfeccionar socialmente y la calidad de tu mente.
+                    </div>
+                    <div class="position-item">
+                        <span class="position-title">MISIÓN (Suma Total):</span> Es el **propósito superior (Tikún).** La cualidad final que debes integrar para alcanzar la plenitud.
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Funciones de Explicación Detallada (Klipa)
+        function getDeepKlipaExplanation(sefira, type) {
+             const sefiraMap = {
+                "Jesed/Gevura (Alma)": "Jesed",
+                "Tiferet (Corazón)": "Tiferet",
+                "Keter/Binah (Mente)": "Keter",
+                "Daat (Propósito)": "Daat"
+            };
+            const simpleSefira = sefiraMap[sefira] || "General";
+            
+            const titles = {
+                "Keter": { "overflow": "Corona Inflada (Orgullo/Imposición)", "vacuum": "Corona Quebrada (Falta de Propósito)", "critical": "Umbral de Propósito (Voluntad Pura)" },
+                "Tiferet": { "overflow": "Amor Asfixiante (Codependencia)", "vacuum": "Belleza Fragmentada (Crisis de Identidad)", "critical": "Amor Incondicional (Auténtico)" },
+                "Jesed": { "overflow": "Generosidad Descontrolada (Desborde)", "vacuum": "Estructura Rígida (Miedo a Dar)", "critical": "Amor Equilibrado (Consciente)" },
+                "Daat": { "overflow": "Conocimiento Forzado (Tensión por el Propósito)", "vacuum": "Propósito Desconectado (Fragmentación)", "critical": "Conocimiento Integrado (Claridad)" },
+                "General": { "overflow": "Exceso de Flujo", "vacuum": "Bloqueo Energético", "critical": "Momento de Transformación" }
+            };
+            
+            const title = titles[simpleSefira]?.[type] || titles["General"][type];
+
+            return {
+                "title": `Klipa ${type === "overflow" ? "de Desborde" : type === "vacuum" ? "de Vacío" : "Crítica"} en ${simpleSefira} - ${title}`,
+                "explicacion": `El diagnóstico para esta posición revela un estado de desbalance energético, requiriendo atención en la Mida asociada al Kli.`,
+                "manifestaciones": []
+            };
+        }
+
+
+        function generateTikkunPractices(klipot) {
+            const practices = [];
+            const severe = klipot.vacuum.filter(r => r.tense.value < 0.7);
+            const critical = klipot.critical;
+            
+            // Prioridad 1: Bloqueo Severo o Punto Crítico
+            if (severe.length > 0) {
+                const target = severe[0];
+                const midaData = getMidaForKlipa(target.kli);
+                
+                practices.push({
+                    priority: "Severa (Bloqueo Mayor)",
+                    sefira: target.sefira,
+                    kli: target.kli,
+                    mida: midaData.mida,
+                    title: `TIKKUN: Activación de la Mida del ${target.kli}`,
+                    description: `Práctica de auto-permiso para desbloquear el Kli ${target.kli} (Sombra de ${midaData.klipa}) y manifestar la Mida de la **${midaData.mida}**. Enfócate en el opuesto de tu Sombra.`,
+                    duration: "20 min diarios",
+                    frequency: "Diaria",
+                    purpose: `Romper la coraza y activar la Mida de ${midaData.mida}`
+                });
+                
+            } else if (critical.length > 0) {
+                const target = critical[0];
+                const midaData = getMidaForKlipa(target.kli);
+                
+                practices.push({
+                    priority: "Alta (Punto Crítico)",
+                    sefira: target.sefira,
+                    kli: target.kli,
+                    mida: midaData.mida,
+                    title: `TIKKUN: Integración de la Mida del ${target.kli}`,
+                    description: `Práctica de coherencia y presencia para aprovechar el Punto Crítico y solidificar la Mida de la **${midaData.mida}**.`,
+                    duration: "10 min diarios",
+                    frequency: "Diaria",
+                    purpose: `Integrar la sombra y la luz para manifestar ${midaData.mida}`
+                });
+            }
+            
+            // Prioridad 2: Desbordes Fuertes (Sobrepresión)
+            const overflowItems = klipot.overflow.filter(o => o.tense.value > 2);
+            if (overflowItems.length > 0) {
+                const target = overflowItems[0];
+                const midaData = getMidaForKlipa(target.kli);
+                
+                practices.push({
+                    priority: "Media (Canalización)",
+                    sefira: target.sefira,
+                    kli: target.kli,
+                    mida: midaData.mida,
+                    title: `CANALIZACIÓN: Enfoque para ${target.sefira.split('(')[0].trim()}`,
+                    description: `Práctica para transformar el exceso de Luz en **${target.sefira.split('(')[0].trim()}** en acción concreta y dirigida, evitando la dispersión.`,
+                    duration: "5 min diarios",
+                    frequency: "Diaria",
+                    purpose: "Transformar la sobrepresión en manifestación."
+                });
+            }
+
+            // Caso base si no hay grandes desafíos
+            if (practices.length === 0) {
+                 practices.push({
+                    priority: "Media",
+                    sefira: "General",
+                    kli: 0,
+                    mida: "Integración Armónica General",
+                    title: "Tikkun de Equilibrio y Grounding",
+                    description: "Prácticas de conexión a tierra para mantener la estabilidad y el flujo energético.",
+                    duration: "5 min diarios",
+                    frequency: "Diaria",
+                    purpose: "Mantener el equilibrio y evitar el agotamiento."
+                });
+            }
+            
+            return practices;
+        }
+
+
+        function generateWeekPlan(practices) {
+             return '<div class="week-plan"><h4>📅 Plan Semanal de Tikkun</h4><p>Plan personalizado basado en tus Klipot específicas</p></div>';
+        }
+
+        // ========== FUNCIÓN PRINCIPAL INTEGRADA ==========
+        function calculateAIOK() {
+            const birthDate = document.getElementById('birthDate').value;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('analysis-results');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            
+            if (!birthDate) {
+                showError('Por favor selecciona una fecha de nacimiento');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            setTimeout(function() {
+                try {
+                    const dateParts = birthDate.split('-');
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]);
+                    const day = parseInt(dateParts[2]);
+                    
+                    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                        showError('Fecha de nacimiento inválida');
+                        return;
+                    }
+                    
+                    const d_raw = day;
+                    const m_raw = month;
+                    const a_raw = year;
+                    
+                    // Reducción de cada componente y la suma total
+                    const d = reduceNumber(d_raw);
+                    const m = reduceNumber(m_raw);
+                    const a = reduceNumber(a_raw);
+                    const a_sum = d_raw + m_raw + a_raw; // Suma numérica completa
+                    const or_total = reduceNumber(a_sum); // Misión
+                    
+                    // CALCULO DEL TenSe (Nuevo Motor)
+                    const tensePrincipales = calculateTensePrincipales(d_raw, m_raw, a_raw, or_total);
+                    const klipot = analyzeKlipot(tensePrincipales);
+                    
+                    const practices = generateTikkunPractices(klipot);
+                    const weekPlan = generateWeekPlan(practices);
+                    
+                    // Explicación de Misión de Vida
+                    const misionExpl = getMisionExplanation(or_total);
+                    
+                    // 1. DATOS BASE
+                    let resultHTML = '<div class="result-card">';
+                    resultHTML += '<h3>📊 Datos de Nacimiento</h3>';
+                    resultHTML += '<p>Fecha: ' + birthDate + ' | Día Crudo: ' + d_raw + ' | Mes Crudo: ' + m_raw + ' | Año Crudo: ' + a_raw + '</p>';
+                    resultHTML += '<p><strong>Día Reducido (Alma): ' + d + '</strong> | <strong>Mes Reducido (Karma): ' + m + '</strong> | <strong>Año Reducido (Destino): ' + a + '</strong></p>';
+                    resultHTML += '</div>';
+                    
+                    // 2. EXPLICACIÓN DE POSICIONES
+                    resultHTML += getPosicionesExplanationHTML();
+                    
+                    // 3. POTENCIAL DE MISIÓN (AHORA CON EXPLICACIÓN)
+                    resultHTML += '<div class="result-card overflow-card">';
+                    resultHTML += '<h3>💫 Potencial de Misión (Or Total)</h3>';
+                    resultHTML += `<p><strong>Número ${or_total} - ${misionExpl.arquetipo}</strong></p>`;
+                    resultHTML += '<div class="explanation-section">';
+                    resultHTML += '<div class="explanation-title">Misión Principal (Or / Don):</div>';
+                    resultHTML += `<p>${misionExpl.potencial}</p>`;
+                    resultHTML += '<div class="explanation-title">La Sombra a Trascender (Klipah):</div>';
+                    resultHTML += `<p>${misionExpl.sombra}</p>`;
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    
+                    // 4. MAPA PRINCIPAL DE PRESIONES (TENsE)
+                    resultHTML += '<div class="result-card key-card">';
+                    resultHTML += '<h3>🗺️ Mapa Principal de Presiones (TenSe)</h3>';
+
+                    // LEYENDA AÑADIDA
+                    resultHTML += '<div class="map-legend">';
+                    resultHTML += '<p><strong>La Luz vs La Sombra ($Or / Kli$):</strong></p>';
+                    resultHTML += '<p><strong>🟢 Flujo / Sobrepresión (> 1.0):</strong> El potencial supera la resistencia. Riesgo: Desborde o imposición.</p>';
+                    resultHTML += '<p><strong>🟡 Punto Crítico (= 1.0):</strong> La Luz es igual a la Sombra. Zona de Máximo Crecimiento/Maestría.</p>';
+                    resultHTML += '<p><strong>🔴 Subpresión / Vacío (< 1.0):</strong> La resistencia es mayor que el potencial. Zona de Bloqueo y Sentimiento de Parálisis.</p>';
+                    resultHTML += '</div>';
+                    
+                    const positions = ['Alma', 'Karma', 'Destino', 'Mision'];
+                    
+                    resultHTML += '<div class="tense-map">';
+                    
+                    positions.forEach(position => {
+                        const result = tensePrincipales[position];
+                        const itemClass = result.tense.type === 'vacuum' ? 'emergency-item' : 
+                                         result.tense.type === 'overflow' ? 'overflow-item' : 
+                                         result.tense.type === 'critical' ? 'critical-item' : '';
+                        
+                        // OBTENER LA INTERPRETACIÓN TERAPÉUTICA
+                        const interpretText = getTenseInterpretation(result.sefira, result.tense);
+
+                        resultHTML += '<div class="tense-item ' + itemClass + '">';
+                        resultHTML += '<strong>' + position + '</strong><br>';
+                        resultHTML += 'Sefirá: ' + result.sefira.split('(')[0].trim() + '<br>';
+                        resultHTML += 'Or: ' + result.or + ' / Kli: ' + result.kli + '<br>';
+                        resultHTML += '<div class="tense-value">' + (result.tense.value === Infinity ? "∞" : result.tense.value.toFixed(2)) + '</div>';
+                        resultHTML += '<small>' + result.tense.state + '</small>';
+                        resultHTML += `<div class="interpret-text">${interpretText}</div>`; // INYECTAR INTERPRETACIÓN
+                        resultHTML += '</div>';
+                    });
+                    
+                    resultHTML += '</div>';
+                    resultHTML += '</div>';
+                    
+                    // 5. KLIPOT DE DESBORDE - TODAS
+                    if (klipot.overflow.length > 0) {
+                        resultHTML += '<div class="result-card overflow-card">';
+                        resultHTML += '<h3>🔥 Klipot de Desborde (TenSe > 1) - ' + klipot.overflow.length + ' detectadas</h3>';
+                        resultHTML += '<p><em>Áreas con exceso de energía que necesitan canalización</em></p>';
+                        
+                        klipot.overflow.sort((a, b) => b.tense.value - a.tense.value);
+                        
+                        klipot.overflow.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "overflow");
+                            const midaData = getMidaForKlipa(klipa.kli);
+                            
+                            resultHTML += '<div class="klipa-section klipa-overflow">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.position + '</strong> (' + klipa.sefira.split('(')[0].trim() + ')';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + (klipa.tense.value === Infinity ? "∞" : klipa.tense.value.toFixed(2));
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += `<div class="explanation-title">${index + 1}. ${deepExplanation.title} (Or ${klipa.or} vs Kli ${klipa.kli})</div>`;
+                            resultHTML += `<p><strong>Mida a Desarrollar (Virtud):</strong> ${midaData.mida}</p>`;
+                            resultHTML += `<p><strong>Klipa Sombra (Defecto a Corregir):</strong> ${midaData.klipa}</p>`;
+                            resultHTML += `<p>${deepExplanation.explicacion}</p>`;
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 6. KLIPOT DE VASIJA VACÍA - TODAS
+                    if (klipot.vacuum.length > 0) {
+                        resultHTML += '<div class="result-card emergency-card">';
+                        resultHTML += '<h3>💢 Klipot de Vasija Vacía (TenSe < 1) - ' + klipot.vacuum.length + ' detectadas</h3>';
+                        resultHTML += '<p><em>Áreas con bloqueo energético que necesitan activación urgente</em></p>';
+                        
+                        klipot.vacuum.sort((a, b) => a.tense.value - b.tense.value);
+                        
+                        klipot.vacuum.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "vacuum");
+                            const midaData = getMidaForKlipa(klipa.kli);
+                            
+                            resultHTML += '<div class="klipa-section klipa-vacuum">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.position + '</strong> (' + klipa.sefira.split('(')[0].trim() + ')';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + klipa.tense.value.toFixed(2);
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += `<div class="explanation-title">${index + 1}. ${deepExplanation.title} (Or ${klipa.or} vs Kli ${klipa.kli})</div>`;
+                            resultHTML += `<p><strong>Mida a Activar (Virtud):</strong> ${midaData.mida}</p>`;
+                            resultHTML += `<p><strong>Klipa Sombra (Defecto a Corregir):</strong> ${midaData.klipa}</p>`;
+                            resultHTML += `<p>${deepExplanation.explicacion}</p>`;
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 7. PUNTOS CRÍTICOS - TODOS
+                    if (klipot.critical.length > 0) {
+                        resultHTML += '<div class="result-card tikkun-card">';
+                        resultHTML += '<h3>⚡ Puntos Críticos (TenSe = 1) - ' + klipot.critical.length + ' detectados</h3>';
+                        resultHTML += '<p><em>Momentos de máxima potencialidad transformadora: Luz y Sombra están en perfecto equilibrio</em></p>';
+                        
+                        klipot.critical.forEach((klipa, index) => {
+                            const deepExplanation = getDeepKlipaExplanation(klipa.sefira, "critical");
+                            const midaData = getMidaForKlipa(klipa.kli);
+                            
+                            resultHTML += '<div class="klipa-section klipa-critical">';
+                            resultHTML += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+                            resultHTML += '<strong>' + klipa.position + '</strong> (' + klipa.sefira.split('(')[0].trim() + ')';
+                            resultHTML += '<span class="tense-badge ' + klipa.tense.badge + '">';
+                            resultHTML += 'TenSe: ' + klipa.tense.value.toFixed(2);
+                            resultHTML += '</span>';
+                            resultHTML += '</div>';
+                            
+                            resultHTML += '<div class="explanation-section">';
+                            resultHTML += `<div class="explanation-title">${index + 1}. ${deepExplanation.title} (Or ${klipa.or} vs Kli ${klipa.kli})</div>`;
+                            resultHTML += `<p><strong>Mida de Equilibrio:</strong> ${midaData.mida}</p>`;
+                            resultHTML += `<p>${deepExplanation.explicacion}</p>`;
+                            resultHTML += '</div>';
+                            resultHTML += '</div>';
+                        });
+                        resultHTML += '</div>';
+                    }
+                    
+                    // 8. BOTÓN PARA TIKKUN
+                    resultHTML += '<div class="result-card tikkun-card">';
+                    resultHTML += '<h3>🔮 ¿Listo para Transformar?</h3>';
+                    resultHTML += '<p>Tu análisis está completo. Ahora puedes ver tu plan personalizado de Tikkun, enfocado en la manifestación de tus Midot.</p>';
+                    resultHTML += '<button class="secondary" onclick="showTikkunPlan()">Ver Mi Plan de Tikkun</button>';
+                    resultHTML += '</div>';
+                    
+                    results.innerHTML = resultHTML;
+                    loading.style.display = 'none';
+                    results.style.display = 'block';
+                    
+                    // Guardar datos para la pestaña Tikkun
+                    window.currentAnalysis = { practices, weekPlan, or_total, tensePrincipales, klipot };
+                    
+                } catch (error) {
+                    loading.style.display = 'none';
+                    showError('Error en el cálculo: ' + error.message);
+                }
+            }, 1500);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function showTikkunPlan() {
+            if (!window.currentAnalysis) {
+                showError('Completa el análisis primero');
+                return;
+            }
+            
+            const { practices, weekPlan, or_total, tensePrincipales, klipot } = window.currentAnalysis;
+            
+            const tikkunHTML = `
+                <div class="result-card tikkun-card">
+                    <h3>🔮 Plan de Tikkun Personalizado</h3>
+                    <p>Basado en tu análisis: Misión (Or ${or_total})</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3>🎯 Prácticas de Reparación</h3>
+                    <div class="practice-grid">
+                        ${practices.map(practice => `
+                            <div class="practice-item">
+                                <div class="practice-priority">${practice.priority} Prioridad</div>
+                                <h4>${practice.title}</h4>
+                                <p><strong>Sefirá / Posición:</strong> ${practice.sefira.split('(')[0].trim()}</p>
+                                ${practice.kli > 0 ? `<p><strong>Kli (Sombra):</strong> ${practice.kli} (${getMidaForKlipa(practice.kli).klipa})</p>` : ''}
+                                <p><strong>Mida (Virtud):</strong> ${practice.mida}</p> 
+                                <p>${practice.description}</p>
+                                <small><strong>Propósito:</strong> ${practice.purpose}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>🔄 Volver al Análisis</h3>
+                    <button onclick="showAnalysis()">📊 Ver Análisis Completo</button>
+                </div>
+            `;
+            
+            document.getElementById('tikkun-tab').innerHTML = tikkunHTML;
+            document.querySelector('[data-tab="tikkun"]').click();
+        }
+
+        function showAnalysis() {
+            document.querySelector('[data-tab="analysis"]').click();
+        }
+
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('calculateBtn').addEventListener('click', calculateAIOK);
+        });
+    </script>
+</body>
+</html>
