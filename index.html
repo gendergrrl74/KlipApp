@@ -266,6 +266,13 @@ body {
   margin-bottom: 8px;
 }
 
+.profile-card-tense {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
 .profile-card-zona {
   font-size: 10px;
   font-family: 'Cinzel', serif;
@@ -288,6 +295,7 @@ body {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 6px;
+  justify-content: center;
 }
 
 .badge {
@@ -301,6 +309,8 @@ body {
 
 .badge-presion { background: #3D1A1A; color: #F5C6C6; }
 .badge-compensacion { background: #1A2A3D; color: #C6D6F5; }
+.badge-sosten { background: #3D331A; color: #F5E8C6; }
+.badge-desplazada { background: #2E1A3D; color: #E3C6F5; }
 .badge-pionero { background: #1A3D1A; color: #C6F5C6; }
 
 .consultant-header {
@@ -347,6 +357,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .output-header-label {
@@ -362,14 +373,6 @@ body {
   font-size: 12px;
   color: var(--gold);
   font-weight: 500;
-}
-
-.output-header-resonancia {
-  font-size: 9px;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 20px;
 }
 
 .sintesis-header {
@@ -680,6 +683,16 @@ function reducir(n) {
   return reducir(s);
 }
 
+// ─── COEFICIENTE TENSe ──────────────────────────────────────────────────────
+// Fórmula: Or / (Or + Kli) — proporción de luz sobre el total del sistema.
+// Escala acotada [0, 1]. Equilibrio (Or = Kli) → 0.50 = Punto Tiferet.
+// Kli = 0 → Tzimtzum (caso especial, no se calcula coeficiente).
+
+function coeficiente(or, kli) {
+  if (kli === 0) return null; // Tzimtzum
+  return parseFloat((or / (or + kli)).toFixed(2));
+}
+
 function getZona(t) {
   if (t === null) return 'tzimtzum';
   if (t <= 0.30) return 'vaciado';
@@ -704,17 +717,24 @@ function calcularPerfil(dia, mes, anio) {
   const AG = reducir(agRaw);
 
   const f1Or = D, f1Kli = Math.abs(D - M);
-  const f1T = f1Kli === 0 ? null : parseFloat((f1Or / f1Kli).toFixed(2));
+  const f1T = coeficiente(f1Or, f1Kli);
 
   const f2Or = M, f2Kli = Math.abs(M - AG);
-  const f2T = f2Kli === 0 ? null : parseFloat((f2Or / f2Kli).toFixed(2));
+  const f2T = coeficiente(f2Or, f2Kli);
 
   const f3Or = AG, f3Kli = Math.abs(D - AG);
-  const f3T = f3Kli === 0 ? null : parseFloat((f3Or / f3Kli).toFixed(2));
+  const f3T = coeficiente(f3Or, f3Kli);
 
+  // F4: el cuerpo como vasija de las tensiones de los planos superiores.
+  // Kli de F4 = promedio de los coeficientes activos, reescalado a la escala
+  // sefirótica (×9) para que sea conmensurable con el Or.
+  // Los planos en Tzimtzum no aportan (plano retraído no transmite al cuerpo).
   const f4Or = reducir(D + M + AG);
-  const f4Kli = parseFloat(((f1T||0) + (f2T||0) + (f3T||0)).toFixed(2));
-  const f4T = f4Kli === 0 ? null : parseFloat((f4Or / f4Kli).toFixed(2));
+  const coefsActivos = [f1T, f2T, f3T].filter(t => t !== null);
+  const f4Kli = coefsActivos.length === 0
+    ? 0
+    : parseFloat(((coefsActivos.reduce((a,b) => a+b, 0) / coefsActivos.length) * 9).toFixed(2));
+  const f4T = coeficiente(f4Or, f4Kli);
 
   return [
     { plano:'F1', nombre:'Alma', mundo:'Atzilut', or:f1Or, kli:f1Kli, tense:f1T, zona:getZona(f1T) },
@@ -734,45 +754,86 @@ function leerAncestro(prefijoDia, prefijoMes, prefijoAnio) {
   return { dia: d, mes: m, anio: a };
 }
 
-function calcularResonancias(perfilConsultante, ancestros) {
-  // ancestros: array de { nombre, perfil }
-  // Para cada plano del consultante, determinar el tipo de resonancia
-  return perfilConsultante.map((f, i) => {
-    if (f.zona === 'tzimtzum') return { tipo: null, ancestrosInvolucrados: [] };
+const PLANOS_NOMBRES = ['Alma', 'Mente', 'Yo Social', 'Cuerpo'];
 
-    const coincidencias = [];
+function esExtremo(zona) { return zona === 'saturacion' || zona === 'vaciado'; }
+
+function calcularResonancias(perfilConsultante, ancestros) {
+  // Jerarquía estricta (fallback): presión > compensación > sostén > desplazada > pionero.
+  // Cada plano recibe a lo sumo UN tipo de resonancia — máxima especificidad.
+  // La desplazada solo se busca si el mismo plano no resonó: si el material
+  // encontró su registro en el mismo mundo, no necesitó desplazarse.
+  return perfilConsultante.map((f, i) => {
+    const vacio = { tipo: null, directas: [], compensatorias: [], sostenes: [], desplazadas: [] };
+    if (f.zona === 'tzimtzum' || f.zona === 'tiferet') return vacio;
+
+    // ── 1. Resonancias en el mismo plano ──
+    const directas = [], compensatorias = [], sostenes = [];
     ancestros.forEach(({ nombre, perfil }) => {
-      const fa = perfil[i]; // mismo plano en el ancestro
+      const fa = perfil[i];
       if (!fa || fa.zona === 'tzimtzum') return;
-      if (fa.or === f.or) {
-        // misma sefiráh
-        if (
-          (esExceso(f.zona) && esExceso(fa.zona)) ||
-          (esDeficit(f.zona) && esDeficit(fa.zona))
-        ) {
-          coincidencias.push({ nombre, tipo: 'directa' });
-        } else if (
-          (esExceso(f.zona) && esDeficit(fa.zona)) ||
-          (esDeficit(f.zona) && esExceso(fa.zona))
-        ) {
-          coincidencias.push({ nombre, tipo: 'compensatoria' });
-        }
+      if (fa.or !== f.or) return;
+
+      if (
+        (esExceso(f.zona) && esExceso(fa.zona)) ||
+        (esDeficit(f.zona) && esDeficit(fa.zona))
+      ) {
+        directas.push(nombre);
+      } else if (
+        (esExceso(f.zona) && esDeficit(fa.zona)) ||
+        (esDeficit(f.zona) && esExceso(fa.zona))
+      ) {
+        compensatorias.push(nombre);
+      } else if (fa.zona === 'tiferet') {
+        sostenes.push(nombre);
       }
     });
 
-    const directas = coincidencias.filter(c => c.tipo === 'directa');
-    const compensatorias = coincidencias.filter(c => c.tipo === 'compensatoria');
+    if (directas.length > 0) return { tipo:'presion', directas, compensatorias, sostenes, desplazadas: [] };
+    if (compensatorias.length > 0) return { tipo:'compensacion', directas, compensatorias, sostenes, desplazadas: [] };
+    if (sostenes.length > 0) return { tipo:'sosten', directas, compensatorias, sostenes, desplazadas: [] };
 
-    let tipo = null;
-    if (directas.length > 0) tipo = 'presion';
-    else if (compensatorias.length > 0) tipo = 'compensacion';
-    else if (ancestros.length > 0) tipo = 'pionero';
+    // ── 2. Fallback: resonancia desplazada (inter-plano) ──
+    // Requisitos: misma sefirá, mismo vector, zona EXTREMA en ambos lados
+    // (Saturación o Vaciado — no Tenso ni Precario), distinto plano.
+    // Descendente (↓): el ancestro la portaba en un mundo más sutil — el material
+    // no elaborado desciende y se densifica (somatización transgeneracional).
+    // Ascendente (↑): el patrón sube hacia planos más sutiles — hipótesis abierta.
+    const desplazadas = [];
+    if (esExtremo(f.zona)) {
+      ancestros.forEach(({ nombre, perfil }) => {
+        perfil.forEach((fa, j) => {
+          if (j === i || !fa || fa.zona === 'tzimtzum') return;
+          if (fa.or !== f.or) return;
+          if (!esExtremo(fa.zona)) return;
+          if (
+            (esExceso(f.zona) && esExceso(fa.zona)) ||
+            (esDeficit(f.zona) && esDeficit(fa.zona))
+          ) {
+            desplazadas.push({
+              nombre,
+              desde: PLANOS_NOMBRES[j],
+              hacia: PLANOS_NOMBRES[i],
+              direccion: j < i ? 'desc' : 'asc'
+            });
+          }
+        });
+      });
+    }
+    if (desplazadas.length > 0) return { tipo:'desplazada', directas: [], compensatorias: [], sostenes: [], desplazadas };
 
-    return {
-      tipo,
-      directas: directas.map(c => c.nombre),
-      compensatorias: compensatorias.map(c => c.nombre)
-    };
+    // ── 3. Tikún pionero (estricto) ──
+    // La sefirá no tiene precedente en NINGÚN plano del campo disponible.
+    if (ancestros.length > 0) {
+      const hayPrecedente = ancestros.some(({ perfil }) =>
+        perfil.some(fa => fa && fa.zona !== 'tzimtzum' && fa.or === f.or)
+      );
+      if (!hayPrecedente) return { tipo:'pionero', directas: [], compensatorias: [], sostenes: [], desplazadas: [] };
+    }
+
+    // Hay precedente de la sefirá en el campo, pero ninguna resonancia calificó:
+    // no se indica nada — cada badge significa algo.
+    return vacio;
   });
 }
 
@@ -784,8 +845,13 @@ function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias) {
       resonanciaStr = ` | PRESIÓN TRANSGENERACIONAL DIRECTA (${r.directas.join(', ')}): la klipá viene consolidada desde el campo ancestral, patrón heredado sin transformación`;
     } else if (r && r.tipo === 'compensacion') {
       resonanciaStr = ` | RESONANCIA COMPENSATORIA (${r.compensatorias.join(', ')}): vector opuesto en ancestro/s — posible implicación sistémica, lealtad invisible, respuesta al desequilibrio del campo`;
+    } else if (r && r.tipo === 'sosten') {
+      resonanciaStr = ` | RESONANCIA DE SOSTÉN (${r.sostenes.join(', ')}): la misma sefiráh fue llevada al equilibrio en el campo ancestral — el tikún tiene precedente realizado, hay recurso disponible en el linaje`;
+    } else if (r && r.tipo === 'desplazada') {
+      const det = r.desplazadas.map(d => `${d.nombre}: ${d.desde} → ${d.hacia}, ${d.direccion === 'desc' ? 'DESCENDENTE' : 'ASCENDENTE'}`).join('; ');
+      resonanciaStr = ` | RESONANCIA DESPLAZADA (${det}): misma sefiráh en vector extremo coincidente pero en distinto plano del campo ancestral — transmisión inter-mundo`;
     } else if (r && r.tipo === 'pionero') {
-      resonanciaStr = ` | TIKÚN PIONERO: sefiráh sin precedente en el campo ancestral disponible — territorio inaugural, mayor desorientación pero también mayor libertad`;
+      resonanciaStr = ` | TIKÚN PIONERO: sefiráh sin precedente en ningún plano del campo ancestral disponible — territorio inaugural absoluto, mayor desorientación pero también mayor libertad`;
     }
     return `${f.plano} — ${f.nombre} (${f.mundo}): Or=${f.or} (${SEFIROT[f.or]||f.or}), Kli=${f.kli}, TENSe=${f.tense!==null?f.tense:'Tzimtzum'}, Zona=${zonaNombre(f.zona)}${resonanciaStr}`;
   }).join('\n');
@@ -796,13 +862,23 @@ function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias) {
 
   return `Eres un sistema de diagnóstico psicodinámico que integra psicología clínica profunda y Kabbalah. Generás diagnósticos narrativos precisos para terapeutas especializados con formación kabbalística y transgeneracional.
 
-El sistema TENSe calcula el Or (luz/sefirá activa) y el Kli (vasija/resistencia) de cuatro planos de existencia (Atzilut=Alma, Briáh=Mente, Yetziráh=Yo Social, Assiáh=Cuerpo). El coeficiente TENSe (Or/Kli) determina si la sefirá opera en exceso (>1: Tenso/Saturación) o en déficit (<1: Precario/Vaciado). El Punto Tiferet (~1) es el equilibrio óptimo. Las klipot son las sombras que emergen cuando la sefirá opera fuera del equilibrio — cada sefiráh tiene klipot de exceso y klipot de déficit cualitativamente distintas.
+El sistema TENSe calcula el Or (luz/sefirá activa) y el Kli (vasija/resistencia) de cuatro planos de existencia (Atzilut=Alma, Briáh=Mente, Yetziráh=Yo Social, Assiáh=Cuerpo). El coeficiente TENSe se calcula como Or/(Or+Kli): la proporción de luz sobre el total del sistema, en escala 0 a 1. El Punto Tiferet (~0.50) es el equilibrio óptimo: la vasija contiene exactamente la luz que recibe. Por encima de 0.55 la sefirá opera en exceso (Tenso: 0.55–0.70; Saturación: >0.70 — la luz desborda la vasija, shevirat hakelim). Por debajo de 0.45 opera en déficit (Precario: 0.30–0.45; Vaciado: ≤0.30 — la vasija excede la luz, forma sin sustancia). Kli=0 se indica como Tzimtzum: contracción radical, el plano se retrae del cálculo. Las klipot son las sombras que emergen cuando la sefirá opera fuera del equilibrio — cada sefiráh tiene klipot de exceso y klipot de déficit cualitativamente distintas.
 
 Cuando se indica PRESIÓN TRANSGENERACIONAL DIRECTA: la klipá viene con peso acumulado del campo, arraigada en el linaje, de tikún más urgente y más resistente. La narrativa debe incluir la dimensión heredada.
 
 Cuando se indica RESONANCIA COMPENSATORIA: el consultante porta el vector opuesto al ancestro — posible implicación sistémica en términos de constelaciones familiares. La narrativa debe señalar la lealtad invisible y el movimiento de desengancho necesario.
 
-Cuando se indica TIKÚN PIONERO: no hay precedente en el campo disponible. La narrativa debe señalar tanto la desorientación que implica inaugurar un patrón como la potencia transformadora para el campo.
+Cuando se indica RESONANCIA DE SOSTÉN: un ancestro porta la misma sefiráh en el mismo plano pero en equilibrio — el tikún ya fue transitado en el campo. La narrativa debe señalar que el consultante no inaugura territorio: hereda una sefiráh trabajada, hay recurso y precedente disponible en el linaje, y el trabajo consiste en reconectar con ese logro del campo más que en abrir camino.
+
+Cuando se indica RESONANCIA DESPLAZADA DESCENDENTE (el ancestro portaba la klipá en un mundo más sutil y el consultante la porta en uno más denso, p. ej. Mente del ancestro → Cuerpo del consultante): es el mecanismo de la somatización transgeneracional — lo que una generación no elabora en su registro, la siguiente lo recibe densificado un mundo más abajo (línea Dolto, Abraham-Torok, Dumas: lo callado en una generación aparece como cuerpo en la siguiente). El material no encontró vasija en su plano de origen y descendió. La narrativa puede afirmar este mecanismo con la autoridad de un proceso clínicamente documentado, y debe nombrar el plano de origen ancestral y el plano de llegada.
+
+Cuando se indica RESONANCIA DESPLAZADA ASCENDENTE (el ancestro la portaba en un mundo más denso y el consultante en uno más sutil): es una lectura hipotética a verificar en sesión. Puede indicar tikún parcial en curso — el patrón se eleva hacia planos de mayor conciencia, lo que antes se actuaba o se somatizaba ahora se piensa o se siente como pregunta del alma — o intelectualización defensiva que mantiene el material a distancia. La narrativa debe ofrecer ambas lecturas como hipótesis abiertas, sin afirmar ninguna.
+
+Cuando se indica TIKÚN PIONERO: la sefiráh no tiene precedente en ningún plano del campo ancestral disponible — pionerismo absoluto. La narrativa debe señalar tanto la desorientación que implica inaugurar un patrón sin mapa heredado como la potencia transformadora que ese trabajo tiene para el campo entero.
+
+Los planos sin indicación de resonancia pero con campo ancestral cargado significan que la sefiráh tiene precedente en el linaje sin configurar transmisión identificable: la narrativa no debe inventar herencias donde el sistema no las señaló.
+
+Los planos en Punto Tiferet no llevan indicación de resonancia: un plano equilibrado no porta klipá activa. La narrativa de esos planos debe describir el recurso que el equilibrio representa, no patologizar.
 
 Perfil del consultante: ${nombre}
 Fecha de nacimiento: ${dia}/${mes}/${anio}${ancestrosStr}
@@ -824,7 +900,7 @@ Generá un diagnóstico narrativo completo con este formato exacto:
 [Párrafo de 5-7 líneas. Misma estructura.]
 
 **SÍNTESIS INTEGRADORA**
-[Párrafo de 8-10 líneas. Lectura analítica del sistema completo: patrón estructural, tensiones entre planos, peso transgeneracional global, centro de gravedad clínico. No repetir lo dicho — integrar. Si hay campo ancestral, señalar qué tikumim son heredados y cuáles inaugurales.]
+[Párrafo de 8-10 líneas. Lectura analítica del sistema completo: patrón estructural, tensiones entre planos, peso transgeneracional global, centro de gravedad clínico. No repetir lo dicho — integrar. Si hay campo ancestral, señalar qué tikumim son heredados, cuáles cuentan con sostén realizado y cuáles son inaugurales.]
 
 Tono: preciso, denso, no didáctico. El lector es terapeuta con formación kabbalística y transgeneracional.`;
 }
@@ -923,12 +999,13 @@ async function calcular() {
 
 function parseOutput(texto) {
   const s = {};
+  // Lookaheads insensibles a tildes: el modelo puede escribir SÍNTESIS o SINTESIS
   const p = [
-    { k:'f1', r:/\*\*F1[^*]*\*\*\s*([\s\S]*?)(?=\*\*F2|\*\*SÍNT|$)/i },
-    { k:'f2', r:/\*\*F2[^*]*\*\*\s*([\s\S]*?)(?=\*\*F3|\*\*SÍNT|$)/i },
-    { k:'f3', r:/\*\*F3[^*]*\*\*\s*([\s\S]*?)(?=\*\*F4|\*\*SÍNT|$)/i },
-    { k:'f4', r:/\*\*F4[^*]*\*\*\s*([\s\S]*?)(?=\*\*SÍNT|$)/i },
-    { k:'sintesis', r:/\*\*SÍNTESIS[^*]*\*\*\s*([\s\S]*?)$/i },
+    { k:'f1', r:/\*\*F1[^*]*\*\*\s*([\s\S]*?)(?=\*\*F2|\*\*S[ÍI]NT|$)/i },
+    { k:'f2', r:/\*\*F2[^*]*\*\*\s*([\s\S]*?)(?=\*\*F3|\*\*S[ÍI]NT|$)/i },
+    { k:'f3', r:/\*\*F3[^*]*\*\*\s*([\s\S]*?)(?=\*\*F4|\*\*S[ÍI]NT|$)/i },
+    { k:'f4', r:/\*\*F4[^*]*\*\*\s*([\s\S]*?)(?=\*\*S[ÍI]NT|$)/i },
+    { k:'sintesis', r:/\*\*S[ÍI]NTESIS[^*]*\*\*\s*([\s\S]*?)$/i },
   ];
   p.forEach(({k,r}) => { const m = texto.match(r); s[k] = m ? m[1].trim() : ''; });
   return s;
@@ -938,6 +1015,11 @@ function resonanciaBadge(r) {
   if (!r || !r.tipo) return '';
   if (r.tipo === 'presion') return `<span class="badge badge-presion">Presión · ${r.directas.join(', ')}</span>`;
   if (r.tipo === 'compensacion') return `<span class="badge badge-compensacion">Compensación · ${r.compensatorias.join(', ')}</span>`;
+  if (r.tipo === 'sosten') return `<span class="badge badge-sosten">Sostén · ${r.sostenes.join(', ')}</span>`;
+  if (r.tipo === 'desplazada') {
+    const tags = r.desplazadas.map(d => `${d.direccion === 'desc' ? '↓' : '↑'} ${d.nombre} · ${d.desde}→${d.hacia}`).join(' / ');
+    return `<span class="badge badge-desplazada">Desplazada ${tags}</span>`;
+  }
   if (r.tipo === 'pionero') return `<span class="badge badge-pionero">Tikún pionero</span>`;
   return '';
 }
@@ -963,6 +1045,7 @@ function renderPerfil(nombre, dia, mes, anio, perfil, ancestros, resonancias, di
           <div class="profile-card-plano">${f.nombre}</div>
           <div class="profile-card-sefira">${SEFIROT[f.or]||f.or}</div>
           <div class="profile-card-or">Or = ${f.or}</div>
+          <div class="profile-card-tense">TENSe ${f.tense !== null ? f.tense.toFixed(2) : '—'}</div>
           <span class="profile-card-zona zona-${f.zona}">${zonaNombre(f.zona)}</span>
           ${resonancias && resonancias[i] && resonancias[i].tipo ? `<div class="resonancia-badges">${resonanciaBadge(resonancias[i])}</div>` : ''}
         </div>
@@ -1119,8 +1202,11 @@ function exportarPDF() {
     let resonanciaTag = '';
     if (r && r.tipo === 'presion') resonanciaTag = ` · Presión: ${r.directas.join(', ')}`;
     else if (r && r.tipo === 'compensacion') resonanciaTag = ` · Compensación: ${r.compensatorias.join(', ')}`;
+    else if (r && r.tipo === 'sosten') resonanciaTag = ` · Sostén: ${r.sostenes.join(', ')}`;
+    else if (r && r.tipo === 'desplazada') resonanciaTag = ` · Desplazada: ${r.desplazadas.map(d => `${d.direccion === 'desc' ? '↓' : '↑'} ${d.nombre} ${d.desde}→${d.hacia}`).join(', ')}`;
     else if (r && r.tipo === 'pionero') resonanciaTag = ' · Tikún pionero';
-    line(`${labels[i]}  ·  ${SEFIROT[f.or]||f.or}  ·  ${zonaNombre(f.zona)}${resonanciaTag}`, 11, 'bold', [61, 61, 92]);
+    const tenseStr = f.tense !== null ? `TENSe ${Number(f.tense).toFixed(2)}` : 'Tzimtzum';
+    line(`${labels[i]}  ·  ${SEFIROT[f.or]||f.or}  ·  ${tenseStr}  ·  ${zonaNombre(f.zona)}${resonanciaTag}`, 11, 'bold', [61, 61, 92]);
     y += 1;
     line(s[claves[i]] || '', 10, 'normal', [30, 30, 50]);
     y += 4;
