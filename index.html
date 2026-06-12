@@ -311,6 +311,7 @@ body {
 .badge-compensacion { background: #1A2A3D; color: #C6D6F5; }
 .badge-sosten { background: #3D331A; color: #F5E8C6; }
 .badge-desplazada { background: #2E1A3D; color: #E3C6F5; }
+.badge-realizado { background: #1A3D38; color: #C6F5EC; }
 .badge-pionero { background: #1A3D1A; color: #C6F5C6; }
 
 .consultant-header {
@@ -764,8 +765,25 @@ function calcularResonancias(perfilConsultante, ancestros) {
   // La desplazada solo se busca si el mismo plano no resonó: si el material
   // encontró su registro en el mismo mundo, no necesitó desplazarse.
   return perfilConsultante.map((f, i) => {
-    const vacio = { tipo: null, directas: [], compensatorias: [], sostenes: [], desplazadas: [] };
-    if (f.zona === 'tzimtzum' || f.zona === 'tiferet') return vacio;
+    const vacio = { tipo: null, directas: [], compensatorias: [], sostenes: [], desplazadas: [], realizados: [] };
+    if (f.zona === 'tzimtzum') return vacio;
+
+    // ── 0. Plano en Tiferet: tikún realizado ──
+    // El plano equilibrado no porta klipá, pero puede portar HISTORIA:
+    // si un ancestro llevó la misma sefirá en distorsión en este mismo plano,
+    // el equilibrio del consultante no es ausencia de herencia sino herencia
+    // metabolizada — el tikún fue realizado. (Inverso del sostén.)
+    if (f.zona === 'tiferet') {
+      const realizados = [];
+      ancestros.forEach(({ nombre, perfil }) => {
+        const fa = perfil[i];
+        if (!fa || fa.zona === 'tzimtzum' || fa.zona === 'tiferet') return;
+        if (fa.or !== f.or) return;
+        realizados.push({ nombre, vector: esExceso(fa.zona) ? 'exceso' : 'déficit' });
+      });
+      if (realizados.length > 0) return { tipo:'realizado', directas: [], compensatorias: [], sostenes: [], desplazadas: [], realizados };
+      return vacio;
+    }
 
     // ── 1. Resonancias en el mismo plano ──
     const directas = [], compensatorias = [], sostenes = [];
@@ -789,9 +807,9 @@ function calcularResonancias(perfilConsultante, ancestros) {
       }
     });
 
-    if (directas.length > 0) return { tipo:'presion', directas, compensatorias, sostenes, desplazadas: [] };
-    if (compensatorias.length > 0) return { tipo:'compensacion', directas, compensatorias, sostenes, desplazadas: [] };
-    if (sostenes.length > 0) return { tipo:'sosten', directas, compensatorias, sostenes, desplazadas: [] };
+    if (directas.length > 0) return { tipo:'presion', directas, compensatorias, sostenes, desplazadas: [], realizados: [] };
+    if (compensatorias.length > 0) return { tipo:'compensacion', directas, compensatorias, sostenes, desplazadas: [], realizados: [] };
+    if (sostenes.length > 0) return { tipo:'sosten', directas, compensatorias, sostenes, desplazadas: [], realizados: [] };
 
     // ── 2. Fallback: resonancia desplazada (inter-plano) ──
     // Requisitos: misma sefirá, mismo vector, zona EXTREMA en ambos lados
@@ -820,7 +838,7 @@ function calcularResonancias(perfilConsultante, ancestros) {
         });
       });
     }
-    if (desplazadas.length > 0) return { tipo:'desplazada', directas: [], compensatorias: [], sostenes: [], desplazadas };
+    if (desplazadas.length > 0) return { tipo:'desplazada', directas: [], compensatorias: [], sostenes: [], desplazadas, realizados: [] };
 
     // ── 3. Tikún pionero (estricto) ──
     // La sefirá no tiene precedente en NINGÚN plano del campo disponible.
@@ -828,7 +846,7 @@ function calcularResonancias(perfilConsultante, ancestros) {
       const hayPrecedente = ancestros.some(({ perfil }) =>
         perfil.some(fa => fa && fa.zona !== 'tzimtzum' && fa.or === f.or)
       );
-      if (!hayPrecedente) return { tipo:'pionero', directas: [], compensatorias: [], sostenes: [], desplazadas: [] };
+      if (!hayPrecedente) return { tipo:'pionero', directas: [], compensatorias: [], sostenes: [], desplazadas: [], realizados: [] };
     }
 
     // Hay precedente de la sefirá en el campo, pero ninguna resonancia calificó:
@@ -850,6 +868,9 @@ function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias) {
     } else if (r && r.tipo === 'desplazada') {
       const det = r.desplazadas.map(d => `${d.nombre}: ${d.desde} → ${d.hacia}, ${d.direccion === 'desc' ? 'DESCENDENTE' : 'ASCENDENTE'}`).join('; ');
       resonanciaStr = ` | RESONANCIA DESPLAZADA (${det}): misma sefiráh en vector extremo coincidente pero en distinto plano del campo ancestral — transmisión inter-mundo`;
+    } else if (r && r.tipo === 'realizado') {
+      const det = r.realizados.map(d => `${d.nombre} (vector ancestral: ${d.vector})`).join('; ');
+      resonanciaStr = ` | TIKÚN REALIZADO (${det}): la misma sefiráh fue portada en distorsión por el/los ancestro/s en este mismo plano y llega al consultante en equilibrio — herencia metabolizada, no ausencia de historia`;
     } else if (r && r.tipo === 'pionero') {
       resonanciaStr = ` | TIKÚN PIONERO: sefiráh sin precedente en ningún plano del campo ancestral disponible — territorio inaugural absoluto, mayor desorientación pero también mayor libertad`;
     }
@@ -874,11 +895,13 @@ Cuando se indica RESONANCIA DESPLAZADA DESCENDENTE (el ancestro portaba la klip�
 
 Cuando se indica RESONANCIA DESPLAZADA ASCENDENTE (el ancestro la portaba en un mundo más denso y el consultante en uno más sutil): es una lectura hipotética a verificar en sesión. Puede indicar tikún parcial en curso — el patrón se eleva hacia planos de mayor conciencia, lo que antes se actuaba o se somatizaba ahora se piensa o se siente como pregunta del alma — o intelectualización defensiva que mantiene el material a distancia. La narrativa debe ofrecer ambas lecturas como hipótesis abiertas, sin afirmar ninguna.
 
+Cuando se indica TIKÚN REALIZADO: el consultante porta en equilibrio (Punto Tiferet) la misma sefiráh que uno o más ancestros portaron en distorsión en el mismo plano. El equilibrio del consultante no es ausencia de historia sino historia metabolizada: el patrón existe en el linaje, fue trabajado, y llega contenido. La narrativa debe honrar ambas dimensiones — nombrar el origen ancestral del patrón con su vector (qué portó el ancestro y cómo) y reconocer el trabajo logrado — sin patologizar el equilibrio ni borrar la herencia. Si el coeficiente está cerca del borde de la zona Tiferet, puede señalarse que el tikún realizado convive con la cercanía del patrón ancestral: logro que se sostiene, no estado garantizado.
+
 Cuando se indica TIKÚN PIONERO: la sefiráh no tiene precedente en ningún plano del campo ancestral disponible — pionerismo absoluto. La narrativa debe señalar tanto la desorientación que implica inaugurar un patrón sin mapa heredado como la potencia transformadora que ese trabajo tiene para el campo entero.
 
-Los planos sin indicación de resonancia pero con campo ancestral cargado significan que la sefiráh tiene precedente en el linaje sin configurar transmisión identificable: la narrativa no debe inventar herencias donde el sistema no las señaló.
+Los planos en Punto Tiferet sin indicación de tikún realizado no llevan resonancia: un plano equilibrado sin historia ancestral de la misma sefiráh se narra como el recurso que el equilibrio representa, sin patologizar y sin inventar herencias.
 
-Los planos en Punto Tiferet no llevan indicación de resonancia: un plano equilibrado no porta klipá activa. La narrativa de esos planos debe describir el recurso que el equilibrio representa, no patologizar.
+Los planos sin indicación de resonancia pero con campo ancestral cargado significan que la sefiráh tiene precedente en el linaje sin configurar transmisión identificable: la narrativa no debe inventar herencias donde el sistema no las señaló.
 
 Perfil del consultante: ${nombre}
 Fecha de nacimiento: ${dia}/${mes}/${anio}${ancestrosStr}
@@ -1020,6 +1043,7 @@ function resonanciaBadge(r) {
     const tags = r.desplazadas.map(d => `${d.direccion === 'desc' ? '↓' : '↑'} ${d.nombre} · ${d.desde}→${d.hacia}`).join(' / ');
     return `<span class="badge badge-desplazada">Desplazada ${tags}</span>`;
   }
+  if (r.tipo === 'realizado') return `<span class="badge badge-realizado">Tikún realizado · ${r.realizados.map(d => d.nombre).join(', ')}</span>`;
   if (r.tipo === 'pionero') return `<span class="badge badge-pionero">Tikún pionero</span>`;
   return '';
 }
@@ -1204,6 +1228,7 @@ function exportarPDF() {
     else if (r && r.tipo === 'compensacion') resonanciaTag = ` · Compensación: ${r.compensatorias.join(', ')}`;
     else if (r && r.tipo === 'sosten') resonanciaTag = ` · Sostén: ${r.sostenes.join(', ')}`;
     else if (r && r.tipo === 'desplazada') resonanciaTag = ` · Desplazada: ${r.desplazadas.map(d => `${d.direccion === 'desc' ? '↓' : '↑'} ${d.nombre} ${d.desde}→${d.hacia}`).join(', ')}`;
+    else if (r && r.tipo === 'realizado') resonanciaTag = ` · Tikún realizado: ${r.realizados.map(d => `${d.nombre} (${d.vector})`).join(', ')}`;
     else if (r && r.tipo === 'pionero') resonanciaTag = ' · Tikún pionero';
     const tenseStr = f.tense !== null ? `TENSe ${Number(f.tense).toFixed(2)}` : 'Tzimtzum';
     line(`${labels[i]}  ·  ${SEFIROT[f.or]||f.or}  ·  ${tenseStr}  ·  ${zonaNombre(f.zona)}${resonanciaTag}`, 11, 'bold', [61, 61, 92]);
