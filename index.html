@@ -588,6 +588,13 @@ body {
         </div>
       </div>
 
+
+      <!-- HISTORIA RELEVANTE CONSULTANTE -->
+      <div class="form-group full" style="margin-bottom:1.2rem">
+        <label class="form-label">Historia relevante (opcional)</label>
+        <textarea class="marcador-input" id="inp-historia" rows="3" placeholder="Ej. orfandad infantil, trauma temprano, enfermedad grave, migracion, abuso, perdidas significativas, contexto familiar relevante..." style="resize:vertical;width:100%;font-size:14px;line-height:1.6;padding:10px 14px;"></textarea>
+      </div>
+
       <!-- ANCESTROS (opcionales) -->
       <div class="ancestros-toggle" onclick="toggleAncestros()">
         <span class="ancestros-toggle-icon" id="ancestros-icon">▶</span>
@@ -616,6 +623,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="madre-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="madre-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
             <div class="ancestro-row">
               <div class="ancestro-label">Padre</div>
@@ -634,6 +642,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="padre-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="padre-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
           </div>
         </div>
@@ -658,6 +667,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="abuela-m-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="abuela-m-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
             <div class="ancestro-row">
               <div class="ancestro-label">Abuelo materno</div>
@@ -676,6 +686,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="abuelo-m-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="abuelo-m-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
           </div>
         </div>
@@ -700,6 +711,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="abuela-p-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="abuela-p-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
             <div class="ancestro-row">
               <div class="ancestro-label">Abuelo paterno</div>
@@ -718,6 +730,7 @@ body {
             </div>
             <div class="marcador-row">
               <input class="marcador-input" id="abuelo-p-marcador" type="text" placeholder="Marcadores (opcional): ej. orfandad antes de los 10, migración, viudez temprana, fallecimiento prematuro..." />
+              <textarea class="marcador-input" id="abuelo-p-historia" rows="2" placeholder="Historia relevante (opcional): ej. trauma, enfermedad, contexto clinico..." style="resize:vertical;width:100%;font-size:13px;margin-top:4px;"></textarea>
             </div>
           </div>
         </div>
@@ -1046,7 +1059,7 @@ function calcularObservaciones(perfilConsultante, ancestros) {
 // Helper trivial para legibilidad del filtro de compensación cruzada
 function fExteso_check(_fExceso, _zona) { return true; }
 
-function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, observaciones) {
+function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, observaciones, historia) {
   const lines = perfil.map((f, i) => {
     const r = resonancias[i];
     let resonanciaStr = '';
@@ -1075,8 +1088,14 @@ function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, obs
   }).join('\n');
 
   const ancestrosStr = ancestros.length > 0
-    ? `\nCampo transgeneracional incluido: ${ancestros.map(a => `${a.nombre} (${a.dia}/${a.mes}/${a.anio})${a.marcador ? ` — marcador: "${a.marcador}"` : ''}`).join(', ')}.`
+    ? `\nCampo transgeneracional incluido: ${ancestros.map(a => {
+        let info = `${a.nombre} (${a.dia}/${a.mes}/${a.anio})`;
+        if (a.marcador) info += ` — marcador: "${a.marcador}"`;
+        if (a.historia) info += ` — historia relevante: "${a.historia}"`;
+        return info;
+      }).join(', ')}.`
     : '\nNo se dispone de fechas ancestrales.';
+  const historiaConsultanteStr = historia ? `\nHistoria relevante del consultante: ${historia}` : '';
 
   return `Eres un sistema de diagnóstico psicodinámico que integra psicología clínica profunda y Kabbalah. Generás diagnósticos narrativos precisos para terapeutas especializados con formación kabbalística y transgeneracional.
 
@@ -1102,10 +1121,12 @@ Los planos sin indicación de resonancia pero con campo ancestral cargado signif
 
 Cuando un plano incluye OBSERVACIONES: son correspondencias que casi califican como resonancia pero no llegan al umbral — nunca se narran como hallazgo. Se integran al párrafo del plano como pregunta abierta, en modo interrogativo, retomando la formulación de klipá hipotética que la observación sugiere para ambos lados (consultante y ancestro) y cerrando siempre con la alternativa de que no haya relación ("¿o son procesos independientes?"). Como máximo una pregunta de este tipo por párrafo, aunque haya dos observaciones — elegir la más relevante para la lectura del plano. Estas preguntas no deben competir en peso narrativo con las resonancias confirmadas (badges): van al final del párrafo, en tono de invitación a explorar en sesión, nunca como conclusión del diagnóstico.
 
-Algunos ancestros del campo transgeneracional pueden incluir un MARCADOR — una nota cualitativa breve (ej. "orfandad antes de los 10", "viudez temprana", "fallecimiento a los 34"). El marcador NO genera badges ni modifica ningún coeficiente: es dato cualitativo, no numérico. Se usa ÚNICAMENTE cuando ese ancestro aparece nombrado en una resonancia o en una observación de algún plano — en ese caso, el marcador puede enriquecer esa narrativa puntual (por ejemplo, una klipá heredada de alguien cuya vida fue breve puede leerse como patrón que no tuvo tiempo de metabolizarse, no solo como patrón transmitido). Si un ancestro con marcador no aparece en ninguna resonancia ni observación de un plano dado, el marcador no se menciona en ese plano. El marcador nunca se usa para inferir un coeficiente, una zona o un badge que el cálculo no produjo.
+Algunos ancestros del campo transgeneracional pueden incluir un MARCADOR y/o una HISTORIA RELEVANTE. El marcador es un evento objetivo breve (ej. "orfandad antes de los 10", "viudez temprana"). La historia relevante es contexto clínico más amplio (trauma, enfermedad, contexto familiar). Ninguno de los dos genera badges ni modifica coeficientes: son datos cualitativos, no numéricos. Se usan ÚNICAMENTE cuando ese ancestro aparece nombrado en una resonancia o en una observación de algún plano — en ese caso, enriquecen esa narrativa puntual. Si un ancestro con marcador o historia no aparece en ninguna resonancia ni observación de un plano dado, esos datos no se mencionan en ese plano. Nunca se usan para inferir un coeficiente, una zona o un badge que el cálculo no produjo.
+
+El consultante puede incluir una HISTORIA RELEVANTE propia (trauma, contexto de vida, situaciones significativas). Esta información enriquece la lectura de los cuatro planos sin modificar los coeficientes: permite que la narrativa dialogue con la trama de vida concreta. Se integra con naturalidad al párrafo del plano donde resulte más pertinente, sin sobresaturar cada sección. No se menciona si no aporta nada al diagnóstico de ese plano específico.
 
 Perfil del consultante: ${nombre}
-Fecha de nacimiento: ${dia}/${mes}/${anio}${ancestrosStr}
+Fecha de nacimiento: ${dia}/${mes}/${anio}${ancestrosStr}${historiaConsultanteStr}
 
 ${lines}
 
@@ -1153,6 +1174,7 @@ async function calcular() {
     return;
   }
 
+  const historia = document.getElementById('inp-historia').value.trim();
   const perfil = calcularPerfil(dia, mes, anio);
 
   // Leer ancestros opcionales
@@ -1171,12 +1193,15 @@ async function calcular() {
     if (raw) {
       const marcadorEl = document.getElementById(`${id}-marcador`);
       const marcador = marcadorEl ? marcadorEl.value.trim() : '';
+      const historiaEl = document.getElementById(`${id}-historia`);
+      const historiaAnc = historiaEl ? historiaEl.value.trim() : '';
       ancestros.push({
         nombre: label,
         dia: raw.dia,
         mes: raw.mes,
         anio: raw.anio,
         marcador,
+        historia: historiaAnc,
         perfil: calcularPerfil(raw.dia, raw.mes, raw.anio)
       });
     }
@@ -1197,7 +1222,7 @@ async function calcular() {
     const response = await fetch('/api/proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, observaciones) })
+      body: JSON.stringify({ prompt: buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, observaciones, historia) })
     });
 
     const data = await response.json();
