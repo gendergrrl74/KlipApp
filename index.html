@@ -282,12 +282,12 @@ body {
   display: inline-block;
 }
 
+.zona-desborde   { background: #3D1A1A; color: #F5C6C6; }
 .zona-saturacion { background: #F5E6E6; color: var(--excess); }
-.zona-tenso { background: #FDF3E6; color: #7A4A0A; }
-.zona-tiferet { background: #E6F5E6; color: var(--tiferet); }
-.zona-precario { background: #E6EEF5; color: var(--deficit); }
-.zona-vaciado { background: #EEE6F5; color: #4A1A7A; }
-.zona-tzimtzum { background: #F0F0F0; color: #666; }
+.zona-equilibrio { background: #E6F5E6; color: var(--tiferet); }
+.zona-precario   { background: #E6EEF5; color: var(--deficit); }
+.zona-vaciado    { background: #EEE6F5; color: #4A1A7A; }
+.zona-tzimtzum   { background: #F0F0F0; color: #666; }
 
 /* Badges de resonancia transgeneracional */
 .resonancia-badges {
@@ -753,20 +753,22 @@ body {
 
 <script>
 const SEFIROT = {
-  1:'Keter', 2:'Chokmah', 3:'Binah', 4:'Chesed', 5:'Gevurah',
-  6:'Tiferet', 7:'Netzaj', 8:'Hod', 9:'Yesod', 10:'Malkut',
-  11:"Da'at", 22:'El Arquitecto', 33:'El Maestro Compasivo'
+  1:'Kéter', 2:'Jojmá', 3:'Biná', 4:'Jésed', 5:'Gevurá',
+  6:'Tiferet', 7:'Netzaj', 8:'Hod', 9:'Yesod', 10:'Maljut',
+  11:"Da'at"
 };
 
 function reducir(n) {
-  if (n <= 9 || n === 10 || n === 11 || n === 22 || n === 33) return n;
+  // 10 nativo → Maljut (no se reduce). 11 nativo → Da'at (no se reduce).
+  // Cualquier otro valor > 9 se reduce hasta llegar a 1-9.
+  if (n <= 9 || n === 10 || n === 11) return n;
   let s = String(n).split('').reduce((a,b) => a + parseInt(b), 0);
   return reducir(s);
 }
 
 // ─── COEFICIENTE TENSe ──────────────────────────────────────────────────────
 // Fórmula: Or / Kli — razón directa entre luz y vasija.
-// Equilibrio exacto (Or = Kli) → 1.0 = Punto Tiferet.
+// Equilibrio Operativo: 1.00 – 1.50. Or = Kli exacto → 1.0 (centro del rango).
 // > 1: más luz que vasija (exceso). < 1: más vasija que luz (déficit).
 // Kli = 0 → Tzimtzum (caso especial, no se calcula coeficiente).
 
@@ -777,19 +779,25 @@ function coeficiente(or, kli) {
 
 function getZona(t) {
   if (t === null) return 'tzimtzum';
-  if (t <= 0.25) return 'vaciado';
-  if (t <= 0.75) return 'precario';
-  if (t <= 1.25) return 'tiferet';
-  if (t <= 2.00) return 'tenso';
-  return 'saturacion';
+  if (t < 0.50)  return 'vaciado';      // Klipá de la Apatía
+  if (t < 1.00)  return 'precario';     // Klipá de la Inseguridad
+  if (t <= 1.50) return 'equilibrio';   // Equilibrio Operativo — sin klipá
+  if (t <= 3.00) return 'saturacion';   // Klipá de la Obsesión
+  return 'desborde';                    // Klipá del Quiebre / Shevirat HaKelim
 }
 
 function zonaNombre(z) {
-  return { vaciado:'Vaciado', precario:'Precario', tiferet:'Punto Tiferet',
-           tenso:'Tenso', saturacion:'Saturación', tzimtzum:'Tzimtzum' }[z];
+  return {
+    vaciado:    'Vaciado',
+    precario:   'Precario',
+    equilibrio: 'Equilibrio Operativo',
+    saturacion: 'Saturación',
+    desborde:   'Desborde',
+    tzimtzum:   'Tzimtzum'
+  }[z] || z;
 }
 
-function esExceso(zona) { return zona === 'saturacion' || zona === 'tenso'; }
+function esExceso(zona) { return zona === 'saturacion' || zona === 'desborde'; }
 function esDeficit(zona) { return zona === 'precario' || zona === 'vaciado'; }
 
 function calcularPerfil(dia, mes, anio) {
@@ -835,7 +843,7 @@ function leerAncestro(prefijoDia, prefijoMes, prefijoAnio) {
 
 const PLANOS_NOMBRES = ['Alma', 'Mente', 'Yo Social', 'Cuerpo'];
 
-function esExtremo(zona) { return zona === 'saturacion' || zona === 'vaciado'; }
+function esExtremo(zona) { return zona === 'desborde' || zona === 'vaciado'; }
 
 function calcularResonancias(perfilConsultante, ancestros) {
   // Jerarquía estricta (fallback): presión > compensación > sostén > desplazada > pionero.
@@ -851,11 +859,11 @@ function calcularResonancias(perfilConsultante, ancestros) {
     // si un ancestro llevó la misma sefirá en distorsión en este mismo plano,
     // el equilibrio del consultante no es ausencia de herencia sino herencia
     // metabolizada — el tikún fue realizado. (Inverso del sostén.)
-    if (f.zona === 'tiferet') {
+    if (f.zona === 'equilibrio') {
       const realizados = [];
       ancestros.forEach(({ nombre, perfil }) => {
         const fa = perfil[i];
-        if (!fa || fa.zona === 'tzimtzum' || fa.zona === 'tiferet') return;
+        if (!fa || fa.zona === 'tzimtzum' || fa.zona === 'equilibrio') return;
         if (fa.or !== f.or) return;
         realizados.push({ nombre, vector: esExceso(fa.zona) ? 'exceso' : 'déficit' });
       });
@@ -880,7 +888,7 @@ function calcularResonancias(perfilConsultante, ancestros) {
         (esDeficit(f.zona) && esExceso(fa.zona))
       ) {
         compensatorias.push(nombre);
-      } else if (fa.zona === 'tiferet') {
+      } else if (fa.zona === 'equilibrio') {
         sostenes.push(nombre);
       }
     });
@@ -954,8 +962,6 @@ const KLIPOT_EXCESO = {
   8:'Hod-en-exceso: análisis recursivo, forma que nombra sin sostener',
   9:'Yesod-saturado: canal sobrecargado, todo pasa sin filtrar',
   10:'Malkut-desbordada: porosidad radical, presencia sin frontera',
-  22:'Arquitecto-saturado: estructura que se impone sin flexibilidad',
-  33:'Maestro-saturado: entrega compasiva sin límite propio',
 };
 
 const KLIPOT_DEFICIT = {
@@ -969,8 +975,6 @@ const KLIPOT_DEFICIT = {
   8:'Hod-precario: dificultad para nombrar, forma social que no convence',
   9:'Yesod-vaciado: canal obstruido, lo que debería circular no llega',
   10:'Malkut-precaria: dificultad para estar presente, anclaje débil',
-  22:'Arquitecto-precario: estructura que no termina de sostenerse',
-  33:'Maestro-precario: dificultad para recibir cuidado',
 };
 
 function klipotDe(or, esExc) {
@@ -986,7 +990,7 @@ function distanciaExtremo(t, esExc) {
 
 function calcularObservaciones(perfilConsultante, ancestros) {
   return perfilConsultante.map((f, i) => {
-    if (f.zona === 'tzimtzum' || f.zona === 'tiferet') return [];
+    if (f.zona === 'tzimtzum' || f.zona === 'equilibrio') return [];
     const obs = [];
     const fExceso = esExceso(f.zona);
     const fExtremo = esExtremo(f.zona);
@@ -1006,7 +1010,7 @@ function calcularObservaciones(perfilConsultante, ancestros) {
           return;
         }
 
-        if (fa.zona === 'tzimtzum' || fa.zona === 'tiferet') return;
+        if (fa.zona === 'tzimtzum' || fa.zona === 'equilibrio') return;
         if (fa.or !== f.or) {
           // ── Compensación cruzada de plano (distinta sefirá, vector opuesto, distinto plano) ──
           if (j !== i && fExteso_check(fExceso, fa.zona)) {
