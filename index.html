@@ -951,30 +951,38 @@ function calcularResonancias(perfilConsultante, ancestros) {
 // hipótesis de klipá a explorar en sesión, nunca hallazgo. Máximo 2 por plano,
 // priorizadas por cercanía al umbral real (extremo verdadero).
 
+// ─── TABLAS DE KLIPOT (enriquecidas) ────────────────────────────────────────
+// Fuente: curso "Desequilibrios del Árbol de la Vida" (Prof. Sabán) +
+// tablas originales de KlipApp. Se conservó el nombre-síntoma original
+// (ej. "Keter-disuelto", "Malkut-desbordada") cuando funcionaba bien, y se
+// sumó la raíz/mecanismo que aporta el material del curso. Donde el curso
+// ofrecía una distinción más precisa entre exceso y déficit que la genérica
+// original, se adoptó esa.
+
 const KLIPOT_EXCESO = {
-  1:'Keter-disuelto: voluntad sin filtro, todo deviene mandato',
-  2:'Chokmah-desbordada: intuición que arrasa, certeza sin verificación',
-  3:'Binah-saturada: sobre-comprensión, análisis que no cierra ni contiene',
-  4:'Chesed-excedido: dar que invade, generosidad que no respeta límite ajeno',
-  5:'Gevurá-excedida: rigidez punitiva, control como forma de cuidado',
-  6:'Tiferet-desbordado: fusión prematura, armonización compulsiva',
-  7:'Netzaj-saturado: proyección incansable, empuje relacional compulsivo',
-  8:'Hod-en-exceso: análisis recursivo, forma que nombra sin sostener',
-  9:'Yesod-saturado: canal sobrecargado, todo pasa sin filtrar',
-  10:'Malkut-desbordada: porosidad radical, presencia sin frontera',
+  1:'Kéter-sin-descenso: ascenso sin bajada, éxtasis retenido como fin en sí mismo, ego espiritual que recibe luz y no la entrega ni la ancla en la materia',
+  2:'Chokmah-dispersa: intuición que se convierte en fuga hacia la luz, dispersión del sentido de la propia vida disfrazada de lucidez, apropiación egoica del don ("esta luz es mía")',
+  3:'Binah-dogmática: un fragmento de realidad erigido en verdad absoluta, perfeccionismo que confunde organizar con controlar, culpa crónica por estándares imposibles',
+  4:'Chesed-mendicante: dar sin límite para comprar amor o reconocimiento, complejo de mesías, generosidad que invade y termina en autohumillación',
+  5:'Gevurá-excedida: violencia o severidad que compensan una autoestima dañada, control y sadismo como sustituto de una fuerza interior que no se siente propia',
+  6:'Tiferet-desbordado: fusión prematura, armonización compulsiva, o narcisismo que exalta virtudes propias para tapar un Yo débil (jactancia sin sustento)',
+  7:'Netzaj-saturado: hedonismo que busca eternidad en el placer temporal y finito, descontrol emocional o pasional, idolatría de la imagen y el cuerpo',
+  8:'Hod-en-exceso: verborragia que teoriza sin actuar (analiza sin dar el salto a la acción), o mentira disfrazada de interpretación forzada',
+  9:'Yesod-saturado: imagen construida que se independiza del alma y termina gobernando a la persona, ego que depende de la crítica o el elogio externo, dependencia emocional con la estructura familiar',
+  10:'Malkut-desbordada: materialismo que confunde ser con tener, acumulación que nunca trae satisfacción, o porosidad radical sin frontera entre el yo y el campo ajeno',
 };
 
 const KLIPOT_DEFICIT = {
-  1:'Keter-ausente: falta de dirección, vacío de propósito',
-  2:'Chokmah-vaciada: intuición apagada, desconfianza del propio saber',
-  3:'Binah-insuficiente: forma sin sustancia, matriz construida pero no habitada',
-  4:'Chesed-precario: dar que no alcanza, escasez afectiva',
-  5:'Gevurá-precaria: límite que no sostiene, dificultad para decir no',
-  6:'Tiferet-precario: desequilibrio sin centro armonizador',
-  7:'Netzaj-vaciado: agotamiento energético, impulso que no llega a la acción',
-  8:'Hod-precario: dificultad para nombrar, forma social que no convence',
-  9:'Yesod-vaciado: canal obstruido, lo que debería circular no llega',
-  10:'Malkut-precaria: dificultad para estar presente, anclaje débil',
+  1:'Kéter-ausente: vacío de propósito, desconexión de la voluntad de existir — a diferenciar del abismo (nada tiene sentido) del vacío fértil no reconocido (todo tiene sentido, pero no se sabe)',
+  2:'Chokmah-vaciada: intuición apagada, desconfianza del propio saber, incapacidad de formular preguntas que eleven la conciencia más allá de lo administrativo e inmediato',
+  3:'Binah-insuficiente: forma sin sustancia, matriz construida pero no habitada — o su forma inversa, desorganización total encubierta de espiritualidad ("estoy fluyendo") sin capacidad de dar forma contenedora',
+  4:'Chesed-precario: dar que no alcanza, rencor que no perdona ni suelta, escasez afectiva hacia una misma tanto como hacia el otro',
+  5:'Gevurá-precaria: incapacidad de recibir (amor, ayuda, elogio) sin sentirse en deuda inmediata, dificultad para decir no, límite que no sostiene',
+  6:'Tiferet-precario: Yo débil sin centro armonizador, baja autoestima, hipersensibilidad al juicio externo por ausencia del cordón protector que debería darle Biná',
+  7:'Netzaj-vaciado: represión emocional que no se revela (clínicamente más problemática que el descontrol, porque impide la corrección), agotamiento del impulso vital',
+  8:'Hod-precario: dificultad para nombrar y decir, omisión de lo esencial, palabra que no logra estructurar ni transmitir lo que se vive',
+  9:'Yesod-vaciado: canal obstruido que evita el vínculo (rechazo a la pareja o al otro como miedo a aprender), vida críptica que se cierra a la información que trae la relación',
+  10:'Malkut-precaria: espiritualismo o antimaterialismo que rechaza el dinero y el cuerpo como impuros, dificultad para estar presente en lo concreto, anclaje débil',
 };
 
 function klipotDe(or, esExc) {
