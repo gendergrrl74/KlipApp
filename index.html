@@ -282,6 +282,14 @@ body {
   display: inline-block;
 }
 
+.profile-card-necesita {
+  font-size: 9px;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+
 .zona-desborde   { background: #3D1A1A; color: #F5C6C6; }
 .zona-saturacion { background: #F5E6E6; color: var(--excess); }
 .zona-equilibrio { background: #E6F5E6; color: var(--tiferet); }
@@ -985,6 +993,66 @@ const KLIPOT_DEFICIT = {
   10:'Malkut-precaria: espiritualismo o antimaterialismo que rechaza el dinero y el cuerpo como impuros, dificultad para estar presente en lo concreto, anclaje débil',
 };
 
+// ─── TABLAS DE TIKÚN (dirección de corrección) ──────────────────────────────
+// Complementan a KLIPOT_EXCESO/KLIPOT_DEFICIT: mientras las klipot nombran la
+// distorsión, estas tablas nombran hacia dónde se mueve el trabajo terapéutico.
+// Fuente: curso "Desequilibrios del Árbol de la Vida" (Prof. Sabán).
+
+const TIKUN_EXCESO = {
+  1: 'Bajar la luz a la acción concreta: convertir el éxtasis o la búsqueda de sentido en compromiso con lo cotidiano y material, sin quedarse arriba sosteniendo el ascenso como fin en sí mismo',
+  2: 'Anclar la intuición en el vínculo y en la realidad antes de convertirla en discurso o certeza; atribuir la luz a su fuente en vez de apropiársela como saber propio',
+  3: 'Practicar la unificación de los fragmentos: tolerar el error y la imperfección propia y ajena en vez de sostener un solo fragmento como verdad completa',
+  4: 'Poner límites endulzados y graduales; distinguir dar por amor de dar para ser reconocida o amada; aprender a recibir sin sentirse en deuda inmediata',
+  5: 'Reconocer que la fuerza real está en el autocontrol, no en la dominación; buscar la validación de la propia fuerza puertas adentro en vez de imponerla afuera',
+  6: 'Reconocer las propias virtudes sin necesidad de exhibirlas ni inflarlas; construir una paz interior que no dependa del reflejo o el juicio externo',
+  7: 'Canalizar el placer y la intensidad emocional con medida; buscar sentido más allá de lo inmediato y sensorial, sin negar el disfrute',
+  8: 'Bajar la teoría a la acción concreta (dar el salto, no solo analizarlo); simplificar el lenguaje y hablar con humildad en vez de con exceso técnico',
+  9: 'Chequear si la imagen que se sostiene ante los demás corresponde al sentir interno; practicar independencia emocional respecto de la crítica y el elogio externos',
+  10: 'Separar la identidad de la posesión; practicar valorar lo que ya se tiene en vez de perseguir la acumulación como prueba de ser',
+};
+
+const TIKUN_DEFICIT = {
+  1: 'Reconectar con el propio potencial como proceso continuo, no como bloque ya cerrado; permitirse volver a preguntar el propósito sin exigirse una respuesta inmediata o final',
+  2: 'Recuperar la confianza en el propio saber intuitivo a través de preguntas simples y honestas, sin exigirse certeza inmediata ni validación externa para confiar en lo que se percibe',
+  3: 'Construir estructura y forma de a poco, sin necesidad de controlarlo todo de una vez; permitir que la matriz se arme con tiempo y no exigirle solidez inmediata',
+  4: 'Practicar el perdón —propio y ajeno— como forma de liberar la energía retenida en el rencor; animarse a dar sin miedo a agotarse, empezando en dosis pequeñas',
+  5: 'Practicar recibir (ayuda, amor, reconocimiento) sin sentirse en deuda inmediata; animarse a decir no sin necesidad de justificarlo extensamente',
+  6: 'Hacer el ejercicio consciente de nombrar las propias virtudes, aunque cueste; buscar el reconocimiento interno antes que la validación externa constante',
+  7: 'Permitir la expresión emocional en vez de reprimirla; animarse a revelar lo que se siente aunque salga imperfecto, ya que omitir es clínicamente más costoso que expresar con torpeza',
+  8: 'Practicar nombrar lo que se vive, aunque sea de forma imperfecta al principio; no omitir lo esencial por miedo a la forma en que va a sonar',
+  9: 'Animarse al vínculo como vía de aprendizaje y no como amenaza; permitir que el otro traiga información valiosa para el propio crecimiento, en vez de evitar el contacto',
+  10: 'Permitirse recibir y disfrutar lo material y el cuerpo sin culpa; practicar anclarse en el presente concreto en vez de posponerlo a un plano más "elevado"',
+};
+
+function tikunDe(or, esExc) {
+  const tabla = esExc ? TIKUN_EXCESO : TIKUN_DEFICIT;
+  return tabla[or] || (esExc ? 'moderar y anclar el exceso' : 'construir gradualmente lo que falta');
+}
+
+// ─── ETIQUETA DE UNA PALABRA: qué hace falta ────────────────────────────────
+// Para las tarjetas de perfil (F1–F4). Resume en una palabra la dirección del
+// tikún de esa sefirá/polaridad — no describe la distorsión, describe la
+// carencia a trabajar. Solo se muestra cuando hay klipá activa (exceso o
+// déficit); Equilibrio Operativo no lleva etiqueta, y Tzimtzum lleva 'Vasija'
+// (construir el Kli que el sistema no proveyó) resuelto aparte en el render.
+
+const TIKUN_PALABRA_EXCESO = {
+  1:'Descenso', 2:'Anclaje', 3:'Flexibilidad', 4:'Límite', 5:'Autocontrol',
+  6:'Humildad', 7:'Medida', 8:'Acción', 9:'Autenticidad', 10:'Desapego',
+};
+
+const TIKUN_PALABRA_DEFICIT = {
+  1:'Propósito', 2:'Confianza', 3:'Estructura', 4:'Perdón', 5:'Recepción',
+  6:'Autoestima', 7:'Expresión', 8:'Palabra', 9:'Vínculo', 10:'Presencia',
+};
+
+function tikunPalabraDe(or, esExc, zona) {
+  if (zona === 'tzimtzum') return 'Vasija';
+  if (zona === 'equilibrio') return '';
+  const tabla = esExc ? TIKUN_PALABRA_EXCESO : TIKUN_PALABRA_DEFICIT;
+  return tabla[or] || '';
+}
+
 function klipotDe(or, esExc) {
   const tabla = esExc ? KLIPOT_EXCESO : KLIPOT_DEFICIT;
   return tabla[or] || (esExc ? 'klipá de exceso' : 'klipá de déficit');
@@ -1096,7 +1164,11 @@ function buildPrompt(nombre, dia, mes, anio, perfil, ancestros, resonancias, obs
       observacionesStr = '\n  OBSERVACIONES (correspondencias a chequear — no afirmar, solo preguntar):\n' +
         obsPlano.map(o => `  - ${o.texto}`).join('\n');
     }
-    return `${f.plano} — ${f.nombre} (${f.mundo}): Or=${f.or} (${SEFIROT[f.or]||f.or}), Kli=${f.kli}, TENSe=${f.tense!==null?f.tense:'Tzimtzum'}, Zona=${zonaNombre(f.zona)}${resonanciaStr}${observacionesStr}`;
+    let tikunStr = '';
+    if (f.zona !== 'tzimtzum' && f.zona !== 'equilibrio') {
+      tikunStr = `\n  TIKÚN de este plano: ${tikunDe(f.or, esExceso(f.zona))}`;
+    }
+    return `${f.plano} — ${f.nombre} (${f.mundo}): Or=${f.or} (${SEFIROT[f.or]||f.or}), Kli=${f.kli}, TENSe=${f.tense!==null?f.tense:'Tzimtzum'}, Zona=${zonaNombre(f.zona)}${resonanciaStr}${observacionesStr}${tikunStr}`;
   }).join('\n');
 
   const ancestrosStr = ancestros.length > 0
@@ -1137,6 +1209,8 @@ Cuando un plano incluye OBSERVACIONES: se integran como pregunta abierta al fina
 
 Cuando hay Tzimtzum (Kli=0): Or sin vasija. En el lenguaje sistémico: un lugar en el campo que no llegó a constituirse como contenedor — puede haber un ancestro que tampoco tuvo acceso a esa cualidad, o un mandato sistémico que prohibió esa frecuencia. La narrativa señala la dirección terapéutica: construir el Kli, hacer el propio Tzimtzum, aprender el límite que el sistema no proveyó.
 
+TIKÚN DE CADA PLANO: cuando un plano incluye la línea "TIKÚN de este plano", esa frase es el insumo con el que se construye la sección final de TIKÚN (ver formato de salida). No se repite textualmente en el párrafo de ese plano — el párrafo de F1–F4 se queda enfocado en nombrar la klipá y su raíz. El tikún se desarrolla aparte, después de la síntesis, integrando los cuatro insumos en una narrativa única y coherente, no en cuatro párrafos sueltos repetidos.
+
 MARCADORES E HISTORIA RELEVANTE: el marcador (evento objetivo breve) y la historia relevante del ancestro se usan únicamente cuando ese ancestro aparece en una resonancia o en una observación — enriquecen esa narrativa puntual. Nunca se usan para inferir coeficientes o badges que el cálculo no produjo. La historia relevante del consultante se integra donde sea pertinente sin sobresaturar cada plano.
 
 Perfil del consultante: ${nombre}
@@ -1160,6 +1234,9 @@ Generá un diagnóstico narrativo completo con este formato exacto:
 
 **SÍNTESIS INTEGRADORA**
 [Párrafo de 8-10 líneas. Lectura analítica del sistema completo: patrón estructural, tensiones entre planos, peso transgeneracional global, centro de gravedad clínico. No repetir lo dicho — integrar. Si hay campo ancestral, señalar qué tikumim son heredados, cuáles cuentan con sostén realizado y cuáles son inaugurales.]
+
+**TIKÚN**
+[Párrafo narrativo de 6-10 líneas que desarrolla el tikún del sistema como un movimiento único y coherente — no cuatro tikumim sueltos repitiendo lo ya dicho, sino cómo se articulan entre sí (qué plano sostiene el trabajo de cuál, en qué orden conviene abordarlos, qué tensión hay que sostener sin resolver todavía). Integrar los insumos de "TIKÚN de este plano" de cada F1–F4 sin citarlos textualmente. Luego, en el mismo bloque, una lista de 3 a 5 actividades concretas de práctica —cosas que la persona puede efectivamente hacer entre sesiones, no solo actitudes a adoptar— derivadas de esos tikumim. Cada actividad en una línea propia, empezando con un guion, breve y accionable (ej. "- Antes de responder algo que activó un juicio rápido, esperar tres respiraciones y preguntarse qué se sentiría en el cuerpo si no se respondiera nada"). Las actividades deben ser específicas del perfil de la persona, no genéricas de bienestar.]
 
 Tono: preciso, denso, no didáctico. El lector es terapeuta con formación kabbalística y transgeneracional.`;
 }
@@ -1267,13 +1344,14 @@ async function calcular() {
 
 function parseOutput(texto) {
   const s = {};
-  // Lookaheads insensibles a tildes: el modelo puede escribir SÍNTESIS o SINTESIS
+  // Lookaheads insensibles a tildes: el modelo puede escribir SÍNTESIS o SINTESIS, TIKÚN o TIKUN
   const p = [
-    { k:'f1', r:/\*\*F1[^*]*\*\*\s*([\s\S]*?)(?=\*\*F2|\*\*S[ÍI]NT|$)/i },
-    { k:'f2', r:/\*\*F2[^*]*\*\*\s*([\s\S]*?)(?=\*\*F3|\*\*S[ÍI]NT|$)/i },
-    { k:'f3', r:/\*\*F3[^*]*\*\*\s*([\s\S]*?)(?=\*\*F4|\*\*S[ÍI]NT|$)/i },
-    { k:'f4', r:/\*\*F4[^*]*\*\*\s*([\s\S]*?)(?=\*\*S[ÍI]NT|$)/i },
-    { k:'sintesis', r:/\*\*S[ÍI]NTESIS[^*]*\*\*\s*([\s\S]*?)$/i },
+    { k:'f1', r:/\*\*F1[^*]*\*\*\s*([\s\S]*?)(?=\*\*F2|\*\*S[ÍI]NT|\*\*TIK[ÚU]N|$)/i },
+    { k:'f2', r:/\*\*F2[^*]*\*\*\s*([\s\S]*?)(?=\*\*F3|\*\*S[ÍI]NT|\*\*TIK[ÚU]N|$)/i },
+    { k:'f3', r:/\*\*F3[^*]*\*\*\s*([\s\S]*?)(?=\*\*F4|\*\*S[ÍI]NT|\*\*TIK[ÚU]N|$)/i },
+    { k:'f4', r:/\*\*F4[^*]*\*\*\s*([\s\S]*?)(?=\*\*S[ÍI]NT|\*\*TIK[ÚU]N|$)/i },
+    { k:'sintesis', r:/\*\*S[ÍI]NTESIS[^*]*\*\*\s*([\s\S]*?)(?=\*\*TIK[ÚU]N|$)/i },
+    { k:'tikun', r:/\*\*TIK[ÚU]N[^*]*\*\*\s*([\s\S]*?)$/i },
   ];
   p.forEach(({k,r}) => { const m = texto.match(r); s[k] = m ? m[1].trim() : ''; });
   return s;
@@ -1309,16 +1387,19 @@ function renderPerfil(nombre, dia, mes, anio, perfil, ancestros, resonancias, ob
       ${ancestrosInfo ? `<div class="consultant-ancestros">${ancestrosInfo}</div>` : ''}
     </div>
     <div class="profile-grid">
-      ${perfil.map((f, i) => `
+      ${perfil.map((f, i) => {
+        const palabra = tikunPalabraDe(f.or, esExceso(f.zona), f.zona);
+        return `
         <div class="profile-card">
           <div class="profile-card-plano">${f.nombre}</div>
           <div class="profile-card-sefira">${SEFIROT[f.or]||f.or}</div>
           <div class="profile-card-or">Or = ${f.or}</div>
           <div class="profile-card-tense">TENSe ${f.tense !== null ? f.tense.toFixed(2) : '—'}</div>
           <span class="profile-card-zona zona-${f.zona}">${zonaNombre(f.zona)}</span>
+          ${palabra ? `<div class="profile-card-necesita">Necesita: ${palabra}</div>` : ''}
           ${resonancias && resonancias[i] && resonancias[i].tipo ? `<div class="resonancia-badges">${resonanciaBadge(resonancias[i])}</div>` : ''}
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>
   `;
 
@@ -1359,6 +1440,21 @@ function renderPerfil(nombre, dia, mes, anio, perfil, ancestros, resonancias, ob
         <span class="output-header-sefira">Lectura del sistema completo</span>
       </div>
       <div class="output-body ${loading?'loading':''}">${sinContenido}</div>
+    </div>
+  `;
+
+  const tikunContenido = loading
+    ? `<span class="spinner"></span> Generando tikún...`
+    : (s['tikun'] || '—');
+
+  html += `
+    <div class="output-section">
+      <div class="output-header sintesis-header">
+        <span class="output-header-label">Tikún</span>
+        <span style="flex:1"></span>
+        <span class="output-header-sefira">Dirección de trabajo y práctica</span>
+      </div>
+      <div class="output-body ${loading?'loading':''}">${tikunContenido}</div>
     </div>
   `;
 
@@ -1483,7 +1579,9 @@ function exportarPDF() {
     else if (r && r.tipo === 'realizado') resonanciaTag = ` · Tikún realizado: ${r.realizados.map(d => `${d.nombre} (${d.vector})`).join(', ')}`;
     else if (r && r.tipo === 'pionero') resonanciaTag = ' · Sin huella visible (ventana: 1 generación)';
     const tenseStr = f.tense !== null ? `TENSe ${Number(f.tense).toFixed(2)}` : 'Tzimtzum';
-    line(`${labels[i]}  ·  ${SEFIROT[f.or]||f.or}  ·  ${tenseStr}  ·  ${zonaNombre(f.zona)}${resonanciaTag}`, 11, 'bold', [61, 61, 92]);
+    const palabraTag = tikunPalabraDe(f.or, esExceso(f.zona), f.zona);
+    const necesitaTag = palabraTag ? ` · Necesita: ${palabraTag}` : '';
+    line(`${labels[i]}  ·  ${SEFIROT[f.or]||f.or}  ·  ${tenseStr}  ·  ${zonaNombre(f.zona)}${resonanciaTag}${necesitaTag}`, 11, 'bold', [61, 61, 92]);
     y += 1;
     line(s[claves[i]] || '', 10, 'normal', [30, 30, 50]);
     const obsPlano = (e.observaciones && e.observaciones[i]) || [];
@@ -1500,6 +1598,12 @@ function exportarPDF() {
   y += 1;
   line(s['sintesis'] || '', 10, 'normal', [30, 30, 50]);
 
+  y += 4;
+  if (y > 245) { doc.addPage(); y = 22; }
+  line('TIKÚN', 11, 'bold', [26, 21, 92]);
+  y += 1;
+  line(s['tikun'] || '', 10, 'normal', [30, 30, 50]);
+
   y += 10;
   line(`TENSe  ·  ${new Date().toLocaleDateString('es-AR')}`, 8, 'italic', [160, 160, 160]);
 
@@ -1508,3 +1612,5 @@ function exportarPDF() {
 </script>
 </body>
 </html>
+
+ 
